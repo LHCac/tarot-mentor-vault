@@ -11,6 +11,16 @@ inbox/*
 sources/original/*
 !sources/original/README.md
 
+# 來源授權未確認前，轉出的正文與衍生索引只留本機
+knowledge/cards/**/*.md
+!knowledge/cards/**/README.md
+knowledge/combinations/major-arcana/
+knowledge/foundations/*-source.md
+catalog/card-index.json
+catalog/coverage.json
+qa/import-report.json
+qa/expected-current.yaml
+
 # 私人牌例與個人學習紀錄
 readings/private/
 notes/private/

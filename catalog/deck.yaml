@@ -1,0 +1,100 @@
+schema_version: 1
+deck:
+  id: rws
+  deck_system: rider-waite-smith
+  name_zh: 偉特塔羅
+  name_en: Rider–Waite–Smith Tarot
+  total_cards: 78
+  ordering:
+    strength: 8
+    justice: 11
+  judgement_spelling: british
+
+cards:
+  # Major Arcana — 22 cards, 0–21.
+  - {id: major-00-the-fool, path: knowledge/cards/major-arcana/00-the-fool.md, arcana: major, suit: null, number: 0, rank: null, name_zh: 愚者, name_en: The Fool, status: draft, source_ids: [src-major-00-05]}
+  - {id: major-01-the-magician, path: knowledge/cards/major-arcana/01-the-magician.md, arcana: major, suit: null, number: 1, rank: null, name_zh: 魔術師, name_en: The Magician, status: draft, source_ids: [src-major-00-05]}
+  - {id: major-02-the-high-priestess, path: knowledge/cards/major-arcana/02-the-high-priestess.md, arcana: major, suit: null, number: 2, rank: null, name_zh: 女祭司, name_en: The High Priestess, status: draft, source_ids: [src-major-00-05]}
+  - {id: major-03-the-empress, path: knowledge/cards/major-arcana/03-the-empress.md, arcana: major, suit: null, number: 3, rank: null, name_zh: 皇后, name_en: The Empress, status: draft, source_ids: [src-major-00-05]}
+  - {id: major-04-the-emperor, path: knowledge/cards/major-arcana/04-the-emperor.md, arcana: major, suit: null, number: 4, rank: null, name_zh: 皇帝, name_en: The Emperor, status: draft, source_ids: [src-major-00-05]}
+  - {id: major-05-the-hierophant, path: knowledge/cards/major-arcana/05-the-hierophant.md, arcana: major, suit: null, number: 5, rank: null, name_zh: 教皇, name_en: The Hierophant, status: draft, source_ids: [src-major-00-05]}
+  - {id: major-06-the-lovers, path: knowledge/cards/major-arcana/06-the-lovers.md, arcana: major, suit: null, number: 6, rank: null, name_zh: 戀人, name_en: The Lovers, status: draft, source_ids: [src-major-06-21]}
+  - {id: major-07-the-chariot, path: knowledge/cards/major-arcana/07-the-chariot.md, arcana: major, suit: null, number: 7, rank: null, name_zh: 戰車, name_en: The Chariot, status: draft, source_ids: [src-major-06-21]}
+  - {id: major-08-strength, path: knowledge/cards/major-arcana/08-strength.md, arcana: major, suit: null, number: 8, rank: null, name_zh: 力量, name_en: Strength, status: draft, source_ids: [src-major-06-21]}
+  - {id: major-09-the-hermit, path: knowledge/cards/major-arcana/09-the-hermit.md, arcana: major, suit: null, number: 9, rank: null, name_zh: 隱者, name_en: The Hermit, status: draft, source_ids: [src-major-06-21]}
+  - {id: major-10-wheel-of-fortune, path: knowledge/cards/major-arcana/10-wheel-of-fortune.md, arcana: major, suit: null, number: 10, rank: null, name_zh: 命運之輪, name_en: Wheel of Fortune, status: draft, source_ids: [src-major-06-21]}
+  - {id: major-11-justice, path: knowledge/cards/major-arcana/11-justice.md, arcana: major, suit: null, number: 11, rank: null, name_zh: 正義, name_en: Justice, status: draft, source_ids: [src-major-06-21]}
+  - {id: major-12-the-hanged-man, path: knowledge/cards/major-arcana/12-the-hanged-man.md, arcana: major, suit: null, number: 12, rank: null, name_zh: 倒吊人, name_en: The Hanged Man, aliases: [吊人], status: draft, source_ids: [src-major-06-21]}
+  - {id: major-13-death, path: knowledge/cards/major-arcana/13-death.md, arcana: major, suit: null, number: 13, rank: null, name_zh: 死神, name_en: Death, status: draft, source_ids: [src-major-06-21]}
+  - {id: major-14-temperance, path: knowledge/cards/major-arcana/14-temperance.md, arcana: major, suit: null, number: 14, rank: null, name_zh: 節制, name_en: Temperance, status: draft, source_ids: [src-major-06-21]}
+  - {id: major-15-the-devil, path: knowledge/cards/major-arcana/15-the-devil.md, arcana: major, suit: null, number: 15, rank: null, name_zh: 惡魔, name_en: The Devil, status: draft, source_ids: [src-major-06-21]}
+  - {id: major-16-the-tower, path: knowledge/cards/major-arcana/16-the-tower.md, arcana: major, suit: null, number: 16, rank: null, name_zh: 高塔, name_en: The Tower, status: draft, source_ids: [src-major-06-21]}
+  - {id: major-17-the-star, path: knowledge/cards/major-arcana/17-the-star.md, arcana: major, suit: null, number: 17, rank: null, name_zh: 星星, name_en: The Star, status: draft, source_ids: [src-major-06-21]}
+  - {id: major-18-the-moon, path: knowledge/cards/major-arcana/18-the-moon.md, arcana: major, suit: null, number: 18, rank: null, name_zh: 月亮, name_en: The Moon, status: draft, source_ids: [src-major-06-21]}
+  - {id: major-19-the-sun, path: knowledge/cards/major-arcana/19-the-sun.md, arcana: major, suit: null, number: 19, rank: null, name_zh: 太陽, name_en: The Sun, status: draft, source_ids: [src-major-06-21]}
+  - {id: major-20-judgement, path: knowledge/cards/major-arcana/20-judgement.md, arcana: major, suit: null, number: 20, rank: null, name_zh: 審判, name_en: Judgement, aliases: [Judgment], status: draft, source_ids: [src-major-06-21]}
+  - {id: major-21-the-world, path: knowledge/cards/major-arcana/21-the-world.md, arcana: major, suit: null, number: 21, rank: null, name_zh: 世界, name_en: The World, status: draft, source_ids: [src-major-06-21]}
+
+  # Wands — imported locally as draft; source-derived card files stay out of the public mirror.
+  - {id: minor-wands-01-ace-of-wands, path: knowledge/cards/minor-arcana/wands/01-ace-of-wands.md, arcana: minor, suit: wands, number: 1, rank: ace, name_zh: 權杖王牌, name_en: Ace of Wands, status: draft, source_ids: [src-wands-01-14]}
+  - {id: minor-wands-02-two-of-wands, path: knowledge/cards/minor-arcana/wands/02-two-of-wands.md, arcana: minor, suit: wands, number: 2, rank: two, name_zh: 權杖二, name_en: Two of Wands, status: draft, source_ids: [src-wands-01-14]}
+  - {id: minor-wands-03-three-of-wands, path: knowledge/cards/minor-arcana/wands/03-three-of-wands.md, arcana: minor, suit: wands, number: 3, rank: three, name_zh: 權杖三, name_en: Three of Wands, status: draft, source_ids: [src-wands-01-14]}
+  - {id: minor-wands-04-four-of-wands, path: knowledge/cards/minor-arcana/wands/04-four-of-wands.md, arcana: minor, suit: wands, number: 4, rank: four, name_zh: 權杖四, name_en: Four of Wands, status: draft, source_ids: [src-wands-01-14]}
+  - {id: minor-wands-05-five-of-wands, path: knowledge/cards/minor-arcana/wands/05-five-of-wands.md, arcana: minor, suit: wands, number: 5, rank: five, name_zh: 權杖五, name_en: Five of Wands, status: draft, source_ids: [src-wands-01-14]}
+  - {id: minor-wands-06-six-of-wands, path: knowledge/cards/minor-arcana/wands/06-six-of-wands.md, arcana: minor, suit: wands, number: 6, rank: six, name_zh: 權杖六, name_en: Six of Wands, status: draft, source_ids: [src-wands-01-14]}
+  - {id: minor-wands-07-seven-of-wands, path: knowledge/cards/minor-arcana/wands/07-seven-of-wands.md, arcana: minor, suit: wands, number: 7, rank: seven, name_zh: 權杖七, name_en: Seven of Wands, status: draft, source_ids: [src-wands-01-14]}
+  - {id: minor-wands-08-eight-of-wands, path: knowledge/cards/minor-arcana/wands/08-eight-of-wands.md, arcana: minor, suit: wands, number: 8, rank: eight, name_zh: 權杖八, name_en: Eight of Wands, status: draft, source_ids: [src-wands-01-14]}
+  - {id: minor-wands-09-nine-of-wands, path: knowledge/cards/minor-arcana/wands/09-nine-of-wands.md, arcana: minor, suit: wands, number: 9, rank: nine, name_zh: 權杖九, name_en: Nine of Wands, status: draft, source_ids: [src-wands-01-14]}
+  - {id: minor-wands-10-ten-of-wands, path: knowledge/cards/minor-arcana/wands/10-ten-of-wands.md, arcana: minor, suit: wands, number: 10, rank: ten, name_zh: 權杖十, name_en: Ten of Wands, status: draft, source_ids: [src-wands-01-14]}
+  - {id: minor-wands-11-page-of-wands, path: knowledge/cards/minor-arcana/wands/11-page-of-wands.md, arcana: minor, suit: wands, number: 11, rank: page, name_zh: 權杖侍者, name_en: Page of Wands, status: draft, source_ids: [src-wands-01-14]}
+  - {id: minor-wands-12-knight-of-wands, path: knowledge/cards/minor-arcana/wands/12-knight-of-wands.md, arcana: minor, suit: wands, number: 12, rank: knight, name_zh: 權杖騎士, name_en: Knight of Wands, status: draft, source_ids: [src-wands-01-14]}
+  - {id: minor-wands-13-queen-of-wands, path: knowledge/cards/minor-arcana/wands/13-queen-of-wands.md, arcana: minor, suit: wands, number: 13, rank: queen, name_zh: 權杖皇后, name_en: Queen of Wands, status: draft, source_ids: [src-wands-01-14]}
+  - {id: minor-wands-14-king-of-wands, path: knowledge/cards/minor-arcana/wands/14-king-of-wands.md, arcana: minor, suit: wands, number: 14, rank: king, name_zh: 權杖國王, name_en: King of Wands, status: draft, source_ids: [src-wands-01-14]}
+
+  # Cups — no source yet.
+  - {id: minor-cups-01-ace-of-cups, path: knowledge/cards/minor-arcana/cups/01-ace-of-cups.md, arcana: minor, suit: cups, number: 1, rank: ace, name_zh: 聖杯王牌, name_en: Ace of Cups, status: missing, source_ids: []}
+  - {id: minor-cups-02-two-of-cups, path: knowledge/cards/minor-arcana/cups/02-two-of-cups.md, arcana: minor, suit: cups, number: 2, rank: two, name_zh: 聖杯二, name_en: Two of Cups, status: missing, source_ids: []}
+  - {id: minor-cups-03-three-of-cups, path: knowledge/cards/minor-arcana/cups/03-three-of-cups.md, arcana: minor, suit: cups, number: 3, rank: three, name_zh: 聖杯三, name_en: Three of Cups, status: missing, source_ids: []}
+  - {id: minor-cups-04-four-of-cups, path: knowledge/cards/minor-arcana/cups/04-four-of-cups.md, arcana: minor, suit: cups, number: 4, rank: four, name_zh: 聖杯四, name_en: Four of Cups, status: missing, source_ids: []}
+  - {id: minor-cups-05-five-of-cups, path: knowledge/cards/minor-arcana/cups/05-five-of-cups.md, arcana: minor, suit: cups, number: 5, rank: five, name_zh: 聖杯五, name_en: Five of Cups, status: missing, source_ids: []}
+  - {id: minor-cups-06-six-of-cups, path: knowledge/cards/minor-arcana/cups/06-six-of-cups.md, arcana: minor, suit: cups, number: 6, rank: six, name_zh: 聖杯六, name_en: Six of Cups, status: missing, source_ids: []}
+  - {id: minor-cups-07-seven-of-cups, path: knowledge/cards/minor-arcana/cups/07-seven-of-cups.md, arcana: minor, suit: cups, number: 7, rank: seven, name_zh: 聖杯七, name_en: Seven of Cups, status: missing, source_ids: []}
+  - {id: minor-cups-08-eight-of-cups, path: knowledge/cards/minor-arcana/cups/08-eight-of-cups.md, arcana: minor, suit: cups, number: 8, rank: eight, name_zh: 聖杯八, name_en: Eight of Cups, status: missing, source_ids: []}
+  - {id: minor-cups-09-nine-of-cups, path: knowledge/cards/minor-arcana/cups/09-nine-of-cups.md, arcana: minor, suit: cups, number: 9, rank: nine, name_zh: 聖杯九, name_en: Nine of Cups, status: missing, source_ids: []}
+  - {id: minor-cups-10-ten-of-cups, path: knowledge/cards/minor-arcana/cups/10-ten-of-cups.md, arcana: minor, suit: cups, number: 10, rank: ten, name_zh: 聖杯十, name_en: Ten of Cups, status: missing, source_ids: []}
+  - {id: minor-cups-11-page-of-cups, path: knowledge/cards/minor-arcana/cups/11-page-of-cups.md, arcana: minor, suit: cups, number: 11, rank: page, name_zh: 聖杯侍者, name_en: Page of Cups, status: missing, source_ids: []}
+  - {id: minor-cups-12-knight-of-cups, path: knowledge/cards/minor-arcana/cups/12-knight-of-cups.md, arcana: minor, suit: cups, number: 12, rank: knight, name_zh: 聖杯騎士, name_en: Knight of Cups, status: missing, source_ids: []}
+  - {id: minor-cups-13-queen-of-cups, path: knowledge/cards/minor-arcana/cups/13-queen-of-cups.md, arcana: minor, suit: cups, number: 13, rank: queen, name_zh: 聖杯皇后, name_en: Queen of Cups, status: missing, source_ids: []}
+  - {id: minor-cups-14-king-of-cups, path: knowledge/cards/minor-arcana/cups/14-king-of-cups.md, arcana: minor, suit: cups, number: 14, rank: king, name_zh: 聖杯國王, name_en: King of Cups, status: missing, source_ids: []}
+
+  # Swords — no source yet.
+  - {id: minor-swords-01-ace-of-swords, path: knowledge/cards/minor-arcana/swords/01-ace-of-swords.md, arcana: minor, suit: swords, number: 1, rank: ace, name_zh: 寶劍王牌, name_en: Ace of Swords, status: missing, source_ids: []}
+  - {id: minor-swords-02-two-of-swords, path: knowledge/cards/minor-arcana/swords/02-two-of-swords.md, arcana: minor, suit: swords, number: 2, rank: two, name_zh: 寶劍二, name_en: Two of Swords, status: missing, source_ids: []}
+  - {id: minor-swords-03-three-of-swords, path: knowledge/cards/minor-arcana/swords/03-three-of-swords.md, arcana: minor, suit: swords, number: 3, rank: three, name_zh: 寶劍三, name_en: Three of Swords, status: missing, source_ids: []}
+  - {id: minor-swords-04-four-of-swords, path: knowledge/cards/minor-arcana/swords/04-four-of-swords.md, arcana: minor, suit: swords, number: 4, rank: four, name_zh: 寶劍四, name_en: Four of Swords, status: missing, source_ids: []}
+  - {id: minor-swords-05-five-of-swords, path: knowledge/cards/minor-arcana/swords/05-five-of-swords.md, arcana: minor, suit: swords, number: 5, rank: five, name_zh: 寶劍五, name_en: Five of Swords, status: missing, source_ids: []}
+  - {id: minor-swords-06-six-of-swords, path: knowledge/cards/minor-arcana/swords/06-six-of-swords.md, arcana: minor, suit: swords, number: 6, rank: six, name_zh: 寶劍六, name_en: Six of Swords, status: missing, source_ids: []}
+  - {id: minor-swords-07-seven-of-swords, path: knowledge/cards/minor-arcana/swords/07-seven-of-swords.md, arcana: minor, suit: swords, number: 7, rank: seven, name_zh: 寶劍七, name_en: Seven of Swords, status: missing, source_ids: []}
+  - {id: minor-swords-08-eight-of-swords, path: knowledge/cards/minor-arcana/swords/08-eight-of-swords.md, arcana: minor, suit: swords, number: 8, rank: eight, name_zh: 寶劍八, name_en: Eight of Swords, status: missing, source_ids: []}
+  - {id: minor-swords-09-nine-of-swords, path: knowledge/cards/minor-arcana/swords/09-nine-of-swords.md, arcana: minor, suit: swords, number: 9, rank: nine, name_zh: 寶劍九, name_en: Nine of Swords, status: missing, source_ids: []}
+  - {id: minor-swords-10-ten-of-swords, path: knowledge/cards/minor-arcana/swords/10-ten-of-swords.md, arcana: minor, suit: swords, number: 10, rank: ten, name_zh: 寶劍十, name_en: Ten of Swords, status: missing, source_ids: []}
+  - {id: minor-swords-11-page-of-swords, path: knowledge/cards/minor-arcana/swords/11-page-of-swords.md, arcana: minor, suit: swords, number: 11, rank: page, name_zh: 寶劍侍者, name_en: Page of Swords, status: missing, source_ids: []}
+  - {id: minor-swords-12-knight-of-swords, path: knowledge/cards/minor-arcana/swords/12-knight-of-swords.md, arcana: minor, suit: swords, number: 12, rank: knight, name_zh: 寶劍騎士, name_en: Knight of Swords, status: missing, source_ids: []}
+  - {id: minor-swords-13-queen-of-swords, path: knowledge/cards/minor-arcana/swords/13-queen-of-swords.md, arcana: minor, suit: swords, number: 13, rank: queen, name_zh: 寶劍皇后, name_en: Queen of Swords, status: missing, source_ids: []}
+  - {id: minor-swords-14-king-of-swords, path: knowledge/cards/minor-arcana/swords/14-king-of-swords.md, arcana: minor, suit: swords, number: 14, rank: king, name_zh: 寶劍國王, name_en: King of Swords, status: missing, source_ids: []}
+
+  # Pentacles — no source yet.
+  - {id: minor-pentacles-01-ace-of-pentacles, path: knowledge/cards/minor-arcana/pentacles/01-ace-of-pentacles.md, arcana: minor, suit: pentacles, number: 1, rank: ace, name_zh: 錢幣王牌, name_en: Ace of Pentacles, status: missing, source_ids: []}
+  - {id: minor-pentacles-02-two-of-pentacles, path: knowledge/cards/minor-arcana/pentacles/02-two-of-pentacles.md, arcana: minor, suit: pentacles, number: 2, rank: two, name_zh: 錢幣二, name_en: Two of Pentacles, status: missing, source_ids: []}
+  - {id: minor-pentacles-03-three-of-pentacles, path: knowledge/cards/minor-arcana/pentacles/03-three-of-pentacles.md, arcana: minor, suit: pentacles, number: 3, rank: three, name_zh: 錢幣三, name_en: Three of Pentacles, status: missing, source_ids: []}
+  - {id: minor-pentacles-04-four-of-pentacles, path: knowledge/cards/minor-arcana/pentacles/04-four-of-pentacles.md, arcana: minor, suit: pentacles, number: 4, rank: four, name_zh: 錢幣四, name_en: Four of Pentacles, status: missing, source_ids: []}
+  - {id: minor-pentacles-05-five-of-pentacles, path: knowledge/cards/minor-arcana/pentacles/05-five-of-pentacles.md, arcana: minor, suit: pentacles, number: 5, rank: five, name_zh: 錢幣五, name_en: Five of Pentacles, status: missing, source_ids: []}
+  - {id: minor-pentacles-06-six-of-pentacles, path: knowledge/cards/minor-arcana/pentacles/06-six-of-pentacles.md, arcana: minor, suit: pentacles, number: 6, rank: six, name_zh: 錢幣六, name_en: Six of Pentacles, status: missing, source_ids: []}
+  - {id: minor-pentacles-07-seven-of-pentacles, path: knowledge/cards/minor-arcana/pentacles/07-seven-of-pentacles.md, arcana: minor, suit: pentacles, number: 7, rank: seven, name_zh: 錢幣七, name_en: Seven of Pentacles, status: missing, source_ids: []}
+  - {id: minor-pentacles-08-eight-of-pentacles, path: knowledge/cards/minor-arcana/pentacles/08-eight-of-pentacles.md, arcana: minor, suit: pentacles, number: 8, rank: eight, name_zh: 錢幣八, name_en: Eight of Pentacles, status: missing, source_ids: []}
+  - {id: minor-pentacles-09-nine-of-pentacles, path: knowledge/cards/minor-arcana/pentacles/09-nine-of-pentacles.md, arcana: minor, suit: pentacles, number: 9, rank: nine, name_zh: 錢幣九, name_en: Nine of Pentacles, status: missing, source_ids: []}
+  - {id: minor-pentacles-10-ten-of-pentacles, path: knowledge/cards/minor-arcana/pentacles/10-ten-of-pentacles.md, arcana: minor, suit: pentacles, number: 10, rank: ten, name_zh: 錢幣十, name_en: Ten of Pentacles, status: missing, source_ids: []}
+  - {id: minor-pentacles-11-page-of-pentacles, path: knowledge/cards/minor-arcana/pentacles/11-page-of-pentacles.md, arcana: minor, suit: pentacles, number: 11, rank: page, name_zh: 錢幣侍者, name_en: Page of Pentacles, status: missing, source_ids: []}
+  - {id: minor-pentacles-12-knight-of-pentacles, path: knowledge/cards/minor-arcana/pentacles/12-knight-of-pentacles.md, arcana: minor, suit: pentacles, number: 12, rank: knight, name_zh: 錢幣騎士, name_en: Knight of Pentacles, status: missing, source_ids: []}
+  - {id: minor-pentacles-13-queen-of-pentacles, path: knowledge/cards/minor-arcana/pentacles/13-queen-of-pentacles.md, arcana: minor, suit: pentacles, number: 13, rank: queen, name_zh: 錢幣皇后, name_en: Queen of Pentacles, status: missing, source_ids: []}
+  - {id: minor-pentacles-14-king-of-pentacles, path: knowledge/cards/minor-arcana/pentacles/14-king-of-pentacles.md, arcana: minor, suit: pentacles, number: 14, rank: king, name_zh: 錢幣國王, name_en: King of Pentacles, status: missing, source_ids: []}

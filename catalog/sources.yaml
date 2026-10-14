@@ -1,0 +1,39 @@
+schema_version: 1
+sources:
+  - id: src-major-00-05
+    title: "大秘儀 0–5 本機原稿"
+    local_filename: "0~5拷貝.pages"
+    media_type: application/x-iwork-pages-sffpages
+    coverage:
+      arcana: major
+      number_from: 0
+      number_to: 5
+      expected_card_count: 6
+    rights_status: unknown
+    publish: false
+
+  - id: src-major-06-21
+    title: "大秘儀 6–21 本機原稿"
+    local_filename: "6~22拷貝.pages"
+    media_type: application/x-iwork-pages-sffpages
+    coverage:
+      arcana: major
+      number_from: 6
+      number_to: 21
+      expected_card_count: 16
+    rights_status: unknown
+    publish: false
+    notes: "檔名含 22，但目前盤點內容止於編號 21；RWS 大秘儀不存在編號 22。"
+
+  - id: src-wands-01-14
+    title: "權杖 1–14 本機原稿"
+    local_filename: "權杖拷貝.pages"
+    media_type: application/x-iwork-pages-sffpages
+    coverage:
+      arcana: minor
+      suit: wands
+      number_from: 1
+      number_to: 14
+      expected_card_count: 14
+    rights_status: unknown
+    publish: false

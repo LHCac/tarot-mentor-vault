@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/LHCac/tarot-mentor-vault/blob/main/schemas/card.schema.json",
+  "title": "Tarot Mentor Vault card frontmatter",
+  "description": "Version 1 contract for one-card-per-Markdown YAML frontmatter in the Rider-Waite-Smith knowledge base.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "deck_system",
+    "arcana",
+    "suit",
+    "number",
+    "rank",
+    "name_zh",
+    "name_en",
+    "aliases",
+    "keywords_upright",
+    "keywords_reversed",
+    "correspondences",
+    "summary",
+    "source_ids",
+    "review_status",
+    "last_reviewed"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^(major-(0[0-9]|1[0-9]|2[01])-[a-z0-9]+(-[a-z0-9]+)*|minor-(wands|cups|swords|pentacles)-(0[1-9]|1[0-4])-[a-z0-9]+(-[a-z0-9]+)*)$"
+    },
+    "deck_system": {
+      "const": "rider-waite-smith"
+    },
+    "arcana": {
+      "enum": ["major", "minor"]
+    },
+    "suit": {
+      "type": ["string", "null"],
+      "enum": [null, "wands", "cups", "swords", "pentacles"]
+    },
+    "number": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 21
+    },
+    "rank": {
+      "type": ["string", "null"],
+      "enum": [
+        null,
+        "ace",
+        "two",
+        "three",
+        "four",
+        "five",
+        "six",
+        "seven",
+        "eight",
+        "nine",
+        "ten",
+        "page",
+        "knight",
+        "queen",
+        "king"
+      ]
+    },
+    "name_zh": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name_en": {
+      "type": "string",
+      "minLength": 1
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "keywords_upright": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "keywords_reversed": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "correspondences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["element", "planet", "zodiac", "timing"],
+      "properties": {
+        "element": {
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "planet": {
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "zodiac": {
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "timing": {
+          "type": ["string", "null"],
+          "minLength": 1
+        }
+      }
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^src-[a-z0-9]+(-[a-z0-9]+)*$"
+      },
+      "uniqueItems": true
+    },
+    "review_status": {
+      "enum": ["draft", "reviewed"]
+    },
+    "last_reviewed": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "format": "date"
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "arcana": {
+            "const": "major"
+          }
+        },
+        "required": ["arcana"]
+      },
+      "then": {
+        "properties": {
+          "suit": {
+            "const": null
+          },
+          "number": {
+            "minimum": 0,
+            "maximum": 21
+          },
+          "rank": {
+            "const": null
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "arcana": {
+            "const": "minor"
+          }
+        },
+        "required": ["arcana"]
+      },
+      "then": {
+        "properties": {
+          "suit": {
+            "enum": ["wands", "cups", "swords", "pentacles"]
+          },
+          "number": {
+            "minimum": 1,
+            "maximum": 14
+          },
+          "rank": {
+            "enum": [
+              "ace",
+              "two",
+              "three",
+              "four",
+              "five",
+              "six",
+              "seven",
+              "eight",
+              "nine",
+              "ten",
+              "page",
+              "knight",
+              "queen",
+              "king"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "review_status": {
+            "const": "reviewed"
+          }
+        },
+        "required": ["review_status"]
+      },
+      "then": {
+        "properties": {
+          "last_reviewed": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    }
+  ]
+}

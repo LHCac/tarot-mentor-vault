@@ -1,8 +1,11 @@
 ---
+schema_version: 1
 id: ""
-arcana: "major-or-minor"
+deck_system: "rider-waite-smith"
+arcana: "major"
 suit: null
-number: null
+number: 0
+rank: null
 name_zh: ""
 name_en: ""
 aliases: []
@@ -66,3 +69,5 @@ last_reviewed: null
 ## FAQ
 
 ## 來源與註記
+
+> `review_status` 只使用 `draft` 或 `reviewed`；標成 `reviewed` 時，必須填寫 `last_reviewed` 日期。未知欄位保留 `null`，不要猜測。
