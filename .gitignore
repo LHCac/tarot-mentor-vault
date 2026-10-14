@@ -1,0 +1,16 @@
+.DS_Store
+.env
+.env.*
+
+# 原始 Pages 文件不進入公開 Git 歷史
+*.pages
+
+# Inbox 與原始來源預設只追蹤說明檔
+inbox/*
+!inbox/README.md
+sources/original/*
+!sources/original/README.md
+
+# 私人牌例與個人學習紀錄
+readings/private/
+notes/private/
