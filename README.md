@@ -25,7 +25,7 @@
 
 ### 教學
 
-依 `lessons/learning-path.md` 從牌組架構、單牌、正逆位、組合牌義到完整牌陣逐步學習。AI 導師的解讀與提問規則在 `mentor/reading-and-teaching-guide.md`。
+依 `lessons/learning-path.md` 從牌組架構、單牌、正逆位、組合牌義到完整牌陣逐步學習。AI 導師的解讀規則在 `mentor/reading-and-teaching-guide.md`，可直接複製的提問方式在 `mentor/query-examples.md`。
 
 ## 整理流程
 
