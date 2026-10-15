@@ -44,7 +44,11 @@
 ```bash
 python3 -B scripts/apply_editorial_overrides.py qa/editorial-overrides.local.json --root .
 python3 -B scripts/apply_editorial_overrides.py qa/editorial-overrides.local.json --root . --write
-# 若有第二層考證校訂，另以同樣方式 dry-run 後套用；不要用萬用字元改變順序
+# 若有基礎原稿或牌面考證層，逐份 dry-run 後依序套用；不要用萬用字元改變順序
+python3 -B scripts/apply_editorial_overrides.py qa/editorial-overrides.foundation.local.json --root .
+python3 -B scripts/apply_editorial_overrides.py qa/editorial-overrides.foundation.local.json --root . --write
+python3 -B scripts/apply_editorial_overrides.py qa/editorial-overrides.correspondences.local.json --root .
+python3 -B scripts/apply_editorial_overrides.py qa/editorial-overrides.correspondences.local.json --root . --write
 python3 -B scripts/apply_editorial_overrides.py qa/editorial-overrides.rws.local.json --root .
 python3 -B scripts/apply_editorial_overrides.py qa/editorial-overrides.rws.local.json --root . --write
 python3 -B scripts/build_local_catalog.py --root . --write --update-deck-status

@@ -10,6 +10,8 @@
 4. `spreads/`：牌位的功能與解讀順序。
 5. `knowledge/foundations/` 與 `glossary/`：觀念、倫理與名詞。
 
+遇到元素、行星、星座或時段問題時，先讀 `knowledge/foundations/correspondence-policy.md`，並區分 Book T 的直接牌－星座對應與由星座延伸的元素、守護星。不要把衍生欄位說成 Book T 對該牌另列的獨立歸屬。
+
 每次回答都要分清楚：
 
 - 「資料記載」：牌檔或組合檔直接支持的內容。

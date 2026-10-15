@@ -29,7 +29,7 @@ python3 -B scripts/build_local_catalog.py --root . --write --update-deck-status
 
 ## 套用已核准的本機校訂
 
-每次重新匯入會忠實重建牌檔，因此已確認的校訂要放在一個或多個本機 `qa/editorial-overrides*.local.json`，再以固定順序重複套用。可按用途分層，例如先套用機械性校訂 `editorial-overrides.local.json`，再套用已經來源考證的 `editorial-overrides.rws.local.json`。公開的 `qa/editorial-overrides.example.json` 只有虛構格式範例。
+每次重新匯入會忠實重建牌檔，因此已確認的校訂要放在一個或多個本機 `qa/editorial-overrides*.local.json`，再以固定順序重複套用。可按用途分層，例如依序套用機械性校訂 `editorial-overrides.local.json`、基礎原稿校訂 `editorial-overrides.foundation.local.json`、體系對應校訂 `editorial-overrides.correspondences.local.json`，再套用牌面考證 `editorial-overrides.rws.local.json`。公開的 `qa/editorial-overrides.example.json` 只有虛構格式範例。
 
 先做不寫檔檢查：
 

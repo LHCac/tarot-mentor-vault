@@ -55,6 +55,10 @@ FOUNDATION_FRONTMATTER_KEYS = {
     "last_reviewed",
 }
 CORRESPONDENCE_KEYS = {"element", "planet", "zodiac", "timing"}
+IMPORTED_FOUNDATION_FILES = 2
+IMPORTED_CARD_EXTERNAL_LINKS = 32
+IMPORTED_COMBINATION_EXTERNAL_LINKS = 462
+IMPORTED_EXTERNAL_LINKS_TOTAL = 494
 SEMANTIC_HEADINGS = {
     "upright": re.compile(r"^#{2,6}\s+.*正位", re.MULTILINE),
     "reversed": re.compile(r"^#{2,6}\s+.*逆位", re.MULTILINE),
@@ -430,20 +434,45 @@ def validate_combination_file(
 
 def validate_foundations(validation: Validation) -> None:
     directory = validation.root / "knowledge/foundations"
-    expected = {
+    expected_sources = {
         directory / "tarot-structure-source.md": "src-major-00-05",
         directory / "minor-arcana-wands-source.md": "src-wands-01-14",
     }
+    expected_references = {directory / "correspondence-policy.md"}
     actual = {Path(path) for path in actual_content_paths(directory)}
-    validation.counts["foundation_files"] = len(actual)
-    missing = sorted(str(path.relative_to(validation.root)) for path in set(expected) - actual)
-    extra = sorted(str(path.relative_to(validation.root)) for path in actual - set(expected))
+    actual_sources = {path for path in actual if path.name.endswith("-source.md")}
+    actual_references = actual - actual_sources
+    validation.counts["foundation_files"] = len(actual_sources)
+    validation.counts["foundation_reference_files"] = len(actual_references)
+    validation.counts["foundation_files_total"] = len(actual)
+
+    expected_source_paths = set(expected_sources)
+    missing = sorted(str(path.relative_to(validation.root)) for path in expected_source_paths - actual_sources)
+    extra = sorted(str(path.relative_to(validation.root)) for path in actual_sources - expected_source_paths)
     if missing:
-        validation.error("knowledge/foundations", f"missing foundation files: {', '.join(missing)}")
+        validation.error("knowledge/foundations", f"missing imported foundation files: {', '.join(missing)}")
     if extra:
-        validation.error("knowledge/foundations", f"unexpected foundation files: {', '.join(extra)}")
-    validation.expect(len(actual) == 2, "knowledge/foundations", f"expected 2 foundation files, found {len(actual)}")
-    for path, source_id in expected.items():
+        validation.error("knowledge/foundations", f"unexpected imported foundation files: {', '.join(extra)}")
+    validation.expect(
+        len(actual_sources) == IMPORTED_FOUNDATION_FILES,
+        "knowledge/foundations",
+        f"expected {IMPORTED_FOUNDATION_FILES} imported foundation files, found {len(actual_sources)}",
+    )
+
+    missing_references = sorted(
+        str(path.relative_to(validation.root))
+        for path in expected_references - actual_references
+    )
+    extra_references = sorted(
+        str(path.relative_to(validation.root))
+        for path in actual_references - expected_references
+    )
+    if missing_references:
+        validation.error("knowledge/foundations", f"missing authored reference files: {', '.join(missing_references)}")
+    if extra_references:
+        validation.error("knowledge/foundations", f"unexpected authored reference files: {', '.join(extra_references)}")
+
+    for path, source_id in expected_sources.items():
         if not path.is_file():
             continue
         parsed = read_markdown(validation, path)
@@ -454,6 +483,14 @@ def validate_foundations(validation: Validation) -> None:
         validation.expect(metadata.get("schema_version") == 1, path, "schema_version must equal 1")
         validation.expect(metadata.get("source_ids") == [source_id], path, f"source_ids must equal {[source_id]!r}")
         check_review_fields(validation, path, metadata)
+        check_single_h1(validation, path, body)
+
+    for path in expected_references:
+        try:
+            body = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as exc:
+            validation.error(path, f"cannot read authored reference: {exc}")
+            continue
         check_single_h1(validation, path, body)
 
 
@@ -492,8 +529,11 @@ def validate_import_report(validation: Validation) -> None:
         ("combination_files",): validation.counts["combination_files"],
         ("directional_combination_rows",): validation.counts["directional_combination_rows"],
         ("undirected_major_pairs",): validation.counts["undirected_major_pairs"],
-        ("foundation_files",): validation.counts["foundation_files"],
-        ("hyperlinks_preserved",): validation.counts["card_body_external_links"] + validation.counts["combination_external_links"],
+        # import-report.json records the immutable raw-import baseline. Reviewed
+        # overrides may later remove a bad source link or add an authored
+        # foundation without rewriting that provenance report.
+        ("foundation_files",): IMPORTED_FOUNDATION_FILES,
+        ("hyperlinks_preserved",): IMPORTED_EXTERNAL_LINKS_TOTAL,
     }
     for key_path, expected in checks.items():
         expect_report_value(validation, report, key_path, expected)
@@ -548,7 +588,12 @@ def validate_repository(root: Path) -> Validation:
         if (root / card.path).is_file():
             card_links += validate_card(validation, card)
     validation.counts["card_body_external_links"] = card_links
-    validation.expect(card_links == 32, "knowledge/cards", f"expected 32 external links in card bodies, found {card_links}")
+    validation.counts["card_body_external_links_imported_baseline"] = (
+        IMPORTED_CARD_EXTERNAL_LINKS
+    )
+    validation.counts["card_body_external_link_delta"] = (
+        card_links - IMPORTED_CARD_EXTERNAL_LINKS
+    )
 
     combination_directory = root / "knowledge/combinations/major-arcana"
     actual_combination_paths = actual_content_paths(combination_directory)
@@ -574,7 +619,11 @@ def validate_repository(root: Path) -> Validation:
     validation.counts["combination_external_links"] = combination_links
     validation.expect(len(directed_edges) == 462, "knowledge/combinations/major-arcana", f"expected 462 directed edges, found {len(directed_edges)}")
     validation.expect(len(undirected_pairs) == 231, "knowledge/combinations/major-arcana", f"expected 231 undirected pairs, found {len(undirected_pairs)}")
-    validation.expect(combination_links == 462, "knowledge/combinations/major-arcana", f"expected 462 external links, found {combination_links}")
+    validation.expect(
+        combination_links == IMPORTED_COMBINATION_EXTERNAL_LINKS,
+        "knowledge/combinations/major-arcana",
+        f"expected {IMPORTED_COMBINATION_EXTERNAL_LINKS} external links, found {combination_links}",
+    )
 
     validate_foundations(validation)
     validate_import_report(validation)
