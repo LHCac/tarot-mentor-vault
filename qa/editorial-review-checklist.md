@@ -42,6 +42,12 @@
 只有在上述項目均完成、來源可追溯，且未解決項目已明確標記時，才可將單牌的 `review_status` 改為 `reviewed`，並在 `last_reviewed` 寫入實際審核日期。最後重新執行：
 
 ```bash
+python3 -B scripts/apply_editorial_overrides.py qa/editorial-overrides.local.json --root .
+python3 -B scripts/apply_editorial_overrides.py qa/editorial-overrides.local.json --root . --write
+# 若有第二層考證校訂，另以同樣方式 dry-run 後套用；不要用萬用字元改變順序
+python3 -B scripts/apply_editorial_overrides.py qa/editorial-overrides.rws.local.json --root .
+python3 -B scripts/apply_editorial_overrides.py qa/editorial-overrides.rws.local.json --root . --write
 python3 -B scripts/build_local_catalog.py --root . --write --update-deck-status
 python3 -B scripts/validate_local_import.py --root .
+python3 -B scripts/lint_editorial_risks.py --root .
 ```

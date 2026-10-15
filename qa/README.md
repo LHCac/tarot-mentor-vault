@@ -4,10 +4,13 @@
 
 `editorial-review-checklist.md` 是可公開的通用人工審核標準。`manual-review-queue.md` 會放實際牌義的待修項目與原文定位，因此在來源授權確認前只留本機。
 
+`editorial-overrides.example.json` 是不含原文的覆寫格式範例；實際校訂放在被 Git 忽略的 `editorial-overrides*.local.json`。可以按用途分層，但每次重新匯入後都要逐份做 dry-run，通過後才依固定順序加 `--write`。
+
 執行：
 
 ```bash
 python3 -B scripts/validate_local_import.py --root .
+python3 -B scripts/lint_editorial_risks.py --root .
 ```
 
 目前通過基線：

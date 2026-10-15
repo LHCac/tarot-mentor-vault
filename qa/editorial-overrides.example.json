@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "description": "虛構占位範例；複製後請換成實際檔案路徑與已核准的校訂文字。",
+  "overrides": [
+    {
+      "path": "example-data/fictional-card.md",
+      "old": "【虛構舊文字：示例甲】",
+      "new": "【虛構新文字：示例甲】",
+      "expected_count": 1
+    },
+    {
+      "path": "example-data/fictional-card.md",
+      "old": "【虛構舊文字：示例乙】",
+      "new": "【虛構新文字：示例乙】",
+      "expected_count": 1
+    }
+  ]
+}

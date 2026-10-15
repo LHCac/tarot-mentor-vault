@@ -21,6 +21,7 @@ catalog/coverage.json
 qa/import-report.json
 qa/expected-current.yaml
 qa/manual-review-queue.md
+qa/editorial-overrides*.local.json
 
 # 私人牌例與個人學習紀錄
 readings/private/

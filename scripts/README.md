@@ -27,6 +27,34 @@ python3 -B scripts/build_local_catalog.py --root . --write --update-deck-status
 - `catalog/card-index.json`：78 張牌的統一搜尋入口；已有內容的 36 張會附摘要與關鍵字。
 - `catalog/coverage.json`：目前覆蓋率、花色統計與缺少的 42 張牌。
 
+## 套用已核准的本機校訂
+
+每次重新匯入會忠實重建牌檔，因此已確認的校訂要放在一個或多個本機 `qa/editorial-overrides*.local.json`，再以固定順序重複套用。可按用途分層，例如先套用機械性校訂 `editorial-overrides.local.json`，再套用已經來源考證的 `editorial-overrides.rws.local.json`。公開的 `qa/editorial-overrides.example.json` 只有虛構格式範例。
+
+先做不寫檔檢查：
+
+```bash
+python3 -B scripts/apply_editorial_overrides.py \
+  qa/editorial-overrides.local.json --root .
+```
+
+所有 `expected_count` 都符合後才套用：
+
+```bash
+python3 -B scripts/apply_editorial_overrides.py \
+  qa/editorial-overrides.local.json --root . --write
+```
+
+若有分層清單，逐份先 dry-run，再依既定順序加上 `--write`。工具會先驗證單一清單的全部覆寫；任一路徑、文字或數量不符時，該批都不寫入。不要用萬用字元一次套用，以免檔案順序因環境而改變。
+
+## 掃描編輯風險
+
+```bash
+python3 -B scripts/lint_editorial_risks.py --root .
+```
+
+輸出為 JSON，會列出斷言、健康結果、財務結果、懷孕、法律結果、受害者責怪、可疑標題與中文多餘空格。Finding 是人工審核提示，不是自動判錯；只要掃描正常完成，即使有 finding 也會以成功狀態結束。
+
 ## 驗證本機匯入結果
 
 ```bash
@@ -34,6 +62,8 @@ python3 -B scripts/validate_local_import.py --root .
 ```
 
 驗證器會重新檢查 36 張牌的 ID、檔名、frontmatter、單一 H1 與主要語義章節，並比對 frontmatter 與正文第一組可見的元素、行星、星座與時間對應。它也會檢查 22 個大秘儀組合檔是否完整形成 462 筆有方向且不含自我配對的關係。
+
+建議的完整順序是：匯入 → 依序套用各層本機覆寫 → 建立索引 → 結構驗證 → 編輯風險掃描。
 
 ## 公開限制
 
