@@ -10,6 +10,7 @@ inbox/*
 !inbox/README.md
 sources/original/*
 !sources/original/README.md
+sources/*.local.yaml
 
 # 來源授權未確認前，轉出的正文與衍生索引只留本機
 knowledge/cards/**/*.md

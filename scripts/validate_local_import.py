@@ -59,6 +59,10 @@ IMPORTED_FOUNDATION_FILES = 2
 IMPORTED_CARD_EXTERNAL_LINKS = 32
 IMPORTED_COMBINATION_EXTERNAL_LINKS = 462
 IMPORTED_EXTERNAL_LINKS_TOTAL = 494
+CURATED_CARD_EXTERNAL_LINKS = 29
+CURATED_CARD_EXTERNAL_LINK_DELTA = -3
+CURATED_FOUNDATION_REFERENCE_FILES = 1
+CURATED_FOUNDATION_FILES_TOTAL = 3
 SEMANTIC_HEADINGS = {
     "upright": re.compile(r"^#{2,6}\s+.*正位", re.MULTILINE),
     "reversed": re.compile(r"^#{2,6}\s+.*逆位", re.MULTILINE),
@@ -445,6 +449,16 @@ def validate_foundations(validation: Validation) -> None:
     validation.counts["foundation_files"] = len(actual_sources)
     validation.counts["foundation_reference_files"] = len(actual_references)
     validation.counts["foundation_files_total"] = len(actual)
+    validation.expect(
+        len(actual_references) == CURATED_FOUNDATION_REFERENCE_FILES,
+        "knowledge/foundations",
+        f"expected {CURATED_FOUNDATION_REFERENCE_FILES} authored reference file, found {len(actual_references)}",
+    )
+    validation.expect(
+        len(actual) == CURATED_FOUNDATION_FILES_TOTAL,
+        "knowledge/foundations",
+        f"expected {CURATED_FOUNDATION_FILES_TOTAL} total foundation files, found {len(actual)}",
+    )
 
     expected_source_paths = set(expected_sources)
     missing = sorted(str(path.relative_to(validation.root)) for path in expected_source_paths - actual_sources)
@@ -593,6 +607,17 @@ def validate_repository(root: Path) -> Validation:
     )
     validation.counts["card_body_external_link_delta"] = (
         card_links - IMPORTED_CARD_EXTERNAL_LINKS
+    )
+    validation.expect(
+        card_links == CURATED_CARD_EXTERNAL_LINKS,
+        "knowledge/cards",
+        f"expected {CURATED_CARD_EXTERNAL_LINKS} curated card-body external links, found {card_links}",
+    )
+    validation.expect(
+        validation.counts["card_body_external_link_delta"]
+        == CURATED_CARD_EXTERNAL_LINK_DELTA,
+        "knowledge/cards",
+        f"expected curated link delta {CURATED_CARD_EXTERNAL_LINK_DELTA}, found {validation.counts['card_body_external_link_delta']}",
     )
 
     combination_directory = root / "knowledge/combinations/major-arcana"

@@ -29,7 +29,7 @@ python3 -B scripts/build_local_catalog.py --root . --write --update-deck-status
 
 ## 套用已核准的本機校訂
 
-每次重新匯入會忠實重建牌檔，因此已確認的校訂要放在一個或多個本機 `qa/editorial-overrides*.local.json`，再以固定順序重複套用。可按用途分層，例如依序套用機械性校訂 `editorial-overrides.local.json`、基礎原稿校訂 `editorial-overrides.foundation.local.json`、體系對應校訂 `editorial-overrides.correspondences.local.json`，再套用牌面考證 `editorial-overrides.rws.local.json`。公開的 `qa/editorial-overrides.example.json` 只有虛構格式範例。
+每次重新匯入會忠實重建牌檔，因此已確認的校訂要放在一個或多個本機 `qa/editorial-overrides*.local.json`，再以固定順序重複套用。可按用途分層，例如依序套用機械性校訂 `editorial-overrides.local.json`、基礎原稿校訂 `editorial-overrides.foundation.local.json`、體系對應校訂 `editorial-overrides.correspondences.local.json`、牌面考證 `editorial-overrides.rws.local.json`，最後套用語義與來源清理 `editorial-overrides.semantics.local.json`。公開的 `qa/editorial-overrides.example.json` 只有虛構格式範例。
 
 先做不寫檔檢查：
 
@@ -61,7 +61,7 @@ python3 -B scripts/lint_editorial_risks.py --root .
 python3 -B scripts/validate_local_import.py --root .
 ```
 
-驗證器會重新檢查 36 張牌的 ID、檔名、frontmatter、單一 H1 與主要語義章節，並比對 frontmatter 與正文第一組可見的元素、行星、星座與時間對應。它也會檢查 22 個大秘儀組合檔是否完整形成 462 筆有方向且不含自我配對的關係。
+驗證器會重新檢查 36 張牌的 ID、檔名、frontmatter、單一 H1 與主要語義章節，並比對 frontmatter 與正文第一組可見的元素、行星、星座與時間對應。它也會檢查 22 個大秘儀組合檔是否完整形成 462 筆有方向且不含自我配對的關係，並對校訂後的牌檔外連與基礎檔數量做防漂移斷言。
 
 建議的完整順序是：匯入 → 依序套用各層本機覆寫 → 建立索引 → 結構驗證 → 編輯風險掃描。
 

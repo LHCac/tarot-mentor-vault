@@ -51,6 +51,8 @@ python3 -B scripts/apply_editorial_overrides.py qa/editorial-overrides.correspon
 python3 -B scripts/apply_editorial_overrides.py qa/editorial-overrides.correspondences.local.json --root . --write
 python3 -B scripts/apply_editorial_overrides.py qa/editorial-overrides.rws.local.json --root .
 python3 -B scripts/apply_editorial_overrides.py qa/editorial-overrides.rws.local.json --root . --write
+python3 -B scripts/apply_editorial_overrides.py qa/editorial-overrides.semantics.local.json --root .
+python3 -B scripts/apply_editorial_overrides.py qa/editorial-overrides.semantics.local.json --root . --write
 python3 -B scripts/build_local_catalog.py --root . --write --update-deck-status
 python3 -B scripts/validate_local_import.py --root .
 python3 -B scripts/lint_editorial_risks.py --root .
