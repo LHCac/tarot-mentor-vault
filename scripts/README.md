@@ -14,7 +14,7 @@ python3 -B scripts/import_pages_docx.py \
   --output-root .
 ```
 
-檢查全綠後，加上 `--write` 才會建立本機檔案。匯入器會先驗證來源雜湊、36 張牌的順序、22 張組合表、462 筆方向式組合及 494 個超連結；任何一項不符就停止，不寫正式檔。
+檢查全綠後，加上 `--write` 才會建立本機檔案。匯入器會先驗證來源雜湊、36 張牌的順序、22 張組合表、462 筆方向式組合及 494 個超連結；任何一項不符就停止，不寫正式檔。它也會解析 Pages 在同一 DOCX 段落內的手動換行，避免對應資料只擷取到第一行。
 
 ## 建立本機搜尋索引
 
@@ -33,7 +33,7 @@ python3 -B scripts/build_local_catalog.py --root . --write --update-deck-status
 python3 -B scripts/validate_local_import.py --root .
 ```
 
-驗證器會重新檢查 36 張牌的 ID、檔名、frontmatter、單一 H1 與主要語義章節，也會檢查 22 個大秘儀組合檔是否完整形成 462 筆有方向且不含自我配對的關係。
+驗證器會重新檢查 36 張牌的 ID、檔名、frontmatter、單一 H1 與主要語義章節，並比對 frontmatter 與正文第一組可見的元素、行星、星座與時間對應。它也會檢查 22 個大秘儀組合檔是否完整形成 462 筆有方向且不含自我配對的關係。
 
 ## 公開限制
 

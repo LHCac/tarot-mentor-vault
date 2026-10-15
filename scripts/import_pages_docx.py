@@ -574,7 +574,10 @@ def extract_correspondences(blocks: Sequence[Block]) -> dict[str, str | None]:
         "元素": "element",
         "行星": "planet",
         "星座": "zodiac",
+        "星座連結": "zodiac",
         "關鍵日期": "timing",
+        "關鍵時間象徵": "timing",
+        "關鍵季節象徵": "timing",
         "時間": "timing",
         "時機": "timing",
     }
@@ -589,12 +592,17 @@ def extract_correspondences(blocks: Sequence[Block]) -> dict[str, str | None]:
             continue
         paragraph = block.value
         assert isinstance(paragraph, Paragraph)
-        match = re.match(r"^([^：:]+)\s*[：:]\s*(.+)$", paragraph.plain)
-        if not match:
-            continue
-        output_key = keys.get(match.group(1).strip())
-        if output_key and result[output_key] is None:
-            result[output_key] = match.group(2).strip()
+        # Pages may store several visually separate lines in one DOCX
+        # paragraph by using explicit line breaks.  Parse every logical line;
+        # otherwise only the first label (often "關鍵詞") is seen and the
+        # following element/planet/zodiac/timing values are silently lost.
+        for line in paragraph.plain.splitlines():
+            match = re.match(r"^([^：:]+)\s*[：:]\s*(.+)$", line.strip())
+            if not match:
+                continue
+            output_key = keys.get(match.group(1).strip())
+            if output_key and result[output_key] is None:
+                result[output_key] = match.group(2).strip()
     return result
 
 
@@ -653,7 +661,16 @@ def render_paragraph(paragraph: Paragraph, foundation: bool = False) -> str:
         return f"- {text.replace(chr(10), chr(10) + '  ')}"
     if plain in SUMMARY_LABELS:
         return f"### {plain}"
-    if not foundation and MAIN_SECTION_RE.search(plain):
+    # Section keywords can also occur inside complete answer paragraphs (for
+    # example, "在是或否的占卜問題中…").  A sentence ending in a
+    # full stop is prose, not a heading, even when it contains such a keyword.
+    explicit_main_section = (
+        "\n" not in plain
+        and len(plain) <= 80
+        and not plain.endswith(("。", "！", "!"))
+        and MAIN_SECTION_RE.search(plain) is not None
+    )
+    if not foundation and explicit_main_section:
         return f"## {plain}"
     if paragraph.max_size in {68, 42}:
         return f"{'###' if foundation else '##'} {plain}"

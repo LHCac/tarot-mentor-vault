@@ -67,6 +67,7 @@ SEMANTIC_HEADINGS = {
 }
 H1_RE = re.compile(r"^# (?!#)(.+)$", re.MULTILINE)
 MARKDOWN_EXTERNAL_LINK_RE = re.compile(r"\]\((https?://[^)\s]+)\)", re.IGNORECASE)
+MARKDOWN_LINK_RE = re.compile(r"\[([^\]]+)\]\([^)]+\)")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 RWS_MAJOR_NUMBERS = {
     "The Fool": 0,
@@ -74,6 +75,17 @@ RWS_MAJOR_NUMBERS = {
     "Justice": 11,
     "Judgement": 20,
     "The World": 21,
+}
+BODY_CORRESPONDENCE_LABELS = {
+    "元素": "element",
+    "行星": "planet",
+    "星座": "zodiac",
+    "星座連結": "zodiac",
+    "關鍵日期": "timing",
+    "關鍵時間象徵": "timing",
+    "關鍵季節象徵": "timing",
+    "時間": "timing",
+    "時機": "timing",
 }
 
 
@@ -247,6 +259,30 @@ def actual_content_paths(directory: Path) -> set[str]:
     }
 
 
+def body_correspondences(body: str) -> dict[str, str]:
+    """Read the first visible correspondence value for each field.
+
+    This mirrors the labels accepted by the importer and catches a regression
+    where Pages line breaks were preserved in the card body but skipped while
+    creating frontmatter.
+    """
+    result: dict[str, str] = {}
+    for raw_line in body.splitlines():
+        line = raw_line.strip()
+        if line.startswith("- "):
+            line = line[2:].strip()
+        match = re.match(r"^([^：:]+)\s*[：:]\s*(.+)$", line)
+        if not match:
+            continue
+        field = BODY_CORRESPONDENCE_LABELS.get(match.group(1).strip())
+        if field is None or field in result:
+            continue
+        value = MARKDOWN_LINK_RE.sub(r"\1", match.group(2)).strip()
+        if value:
+            result[field] = value
+    return result
+
+
 def validate_card(validation: Validation, spec: CardSpec) -> int:
     path = validation.root / spec.path
     parsed = read_markdown(validation, path)
@@ -282,6 +318,12 @@ def validate_card(validation: Validation, spec: CardSpec) -> int:
         for field in CORRESPONDENCE_KEYS:
             value = correspondences.get(field)
             validation.expect(value is None or (isinstance(value, str) and value.strip()), path, f"correspondences.{field} must be null or a non-empty string")
+        for field, visible_value in body_correspondences(body).items():
+            validation.expect(
+                correspondences.get(field) == visible_value,
+                path,
+                f"correspondences.{field} must match the first body value {visible_value!r}",
+            )
 
     summary = metadata.get("summary")
     validation.expect(isinstance(summary, str) and bool(summary.strip()), path, "summary must be a non-empty string")

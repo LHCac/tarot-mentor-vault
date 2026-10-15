@@ -2,6 +2,8 @@
 
 `expected-current.yaml` 保存目前應有的牌組範圍與固定規則；`import-report.json` 是本機匯入三份原稿後的機器報告。
 
+`editorial-review-checklist.md` 是可公開的通用人工審核標準。`manual-review-queue.md` 會放實際牌義的待修項目與原文定位，因此在來源授權確認前只留本機。
+
 執行：
 
 ```bash
