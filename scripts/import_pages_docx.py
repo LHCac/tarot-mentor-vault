@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Import the three reviewed Pages-to-DOCX exports into local Markdown.
+"""Import the four reviewed Pages-to-DOCX exports into local Markdown.
 
 The importer is intentionally strict.  It validates the exact reviewed DOCX
 exports, card boundaries, card order, directional combination tables, and
@@ -24,6 +24,8 @@ from xml.etree import ElementTree as ET
 
 
 W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+R_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+PKG_REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
 W = f"{{{W_NS}}}"
 
 
@@ -121,6 +123,39 @@ WANDS: tuple[CardSpec, ...] = tuple(
     for number, rank, name_zh, name_en, slug in WAND_DATA
 )
 
+CUP_DATA = (
+    (1, "ace", "聖杯王牌", "Ace of Cups", "ace-of-cups"),
+    (2, "two", "聖杯二", "Two of Cups", "two-of-cups"),
+    (3, "three", "聖杯三", "Three of Cups", "three-of-cups"),
+    (4, "four", "聖杯四", "Four of Cups", "four-of-cups"),
+    (5, "five", "聖杯五", "Five of Cups", "five-of-cups"),
+    (6, "six", "聖杯六", "Six of Cups", "six-of-cups"),
+    (7, "seven", "聖杯七", "Seven of Cups", "seven-of-cups"),
+    (8, "eight", "聖杯八", "Eight of Cups", "eight-of-cups"),
+    (9, "nine", "聖杯九", "Nine of Cups", "nine-of-cups"),
+    (10, "ten", "聖杯十", "Ten of Cups", "ten-of-cups"),
+    (11, "page", "聖杯侍者", "Page of Cups", "page-of-cups"),
+    (12, "knight", "聖杯騎士", "Knight of Cups", "knight-of-cups"),
+    (13, "queen", "聖杯皇后", "Queen of Cups", "queen-of-cups"),
+    (14, "king", "聖杯國王", "King of Cups", "king-of-cups"),
+)
+
+CUPS: tuple[CardSpec, ...] = tuple(
+    CardSpec(
+        id=f"minor-cups-{number:02d}-{slug}",
+        path=f"knowledge/cards/minor-arcana/cups/{number:02d}-{slug}.md",
+        arcana="minor",
+        suit="cups",
+        number=number,
+        rank=rank,
+        name_zh=name_zh,
+        name_en=name_en,
+        slug=slug,
+        source_id="src-cups-01-14",
+    )
+    for number, rank, name_zh, name_en, slug in CUP_DATA
+)
+
 MAJOR_BY_NUMBER = {card.number: card for card in MAJORS}
 
 
@@ -162,6 +197,15 @@ INPUT_SPECS = {
         nonempty_paragraph_count=1797,
         table_count=0,
         cards=WANDS,
+    ),
+    "cups_01_14": InputSpec(
+        key="cups_01_14",
+        source_id="src-cups-01-14",
+        sha256="ffebf0286847c9a71dca3f53b6f582c135554a6779f65670327707026756ad99",
+        paragraph_count=2365,
+        nonempty_paragraph_count=2033,
+        table_count=0,
+        cards=CUPS,
     ),
 }
 
@@ -291,7 +335,34 @@ def markdown_from_segments(segments: Iterable[Segment]) -> str:
 HYPERLINK_RE = re.compile(r'HYPERLINK\s+"([^"]+)"', re.IGNORECASE)
 
 
-def parse_paragraph(element: ET.Element) -> Paragraph:
+def parse_relationships(archive: zipfile.ZipFile) -> dict[str, str]:
+    """Return external hyperlink targets keyed by their document rId."""
+    try:
+        relationships_xml = archive.read("word/_rels/document.xml.rels")
+    except KeyError:
+        return {}
+    try:
+        root = ET.fromstring(relationships_xml)
+    except ET.ParseError as error:
+        raise ValueError(f"Cannot parse DOCX relationships: {error}") from error
+
+    relationships: dict[str, str] = {}
+    for relationship in root.findall(f"./{{{PKG_REL_NS}}}Relationship"):
+        relationship_type = relationship.get("Type", "")
+        if not relationship_type.endswith("/hyperlink"):
+            continue
+        relationship_id = relationship.get("Id")
+        target = relationship.get("Target")
+        if relationship_id and target:
+            relationships[relationship_id] = target
+    return relationships
+
+
+def parse_paragraph(
+    element: ET.Element,
+    relationships: dict[str, str] | None = None,
+) -> Paragraph:
+    relationships = relationships or {}
     sizes = [
         int(size.get(w("val"), ""))
         for size in element.findall(f".//{w('sz')}")
@@ -299,10 +370,34 @@ def parse_paragraph(element: ET.Element) -> Paragraph:
     ]
     bullet = element.find(f"./{w('pPr')}/{w('numPr')}") is not None
     segments: list[Segment] = []
-    links: list[Link] = []
+    field_links: list[Link] = []
     field: dict[str, object] | None = None
 
-    def append_text(text: str, bold: bool, italic: bool) -> None:
+    direct_run_urls: dict[int, str] = {}
+    direct_links: list[Link] = []
+    for hyperlink in element.iter(w("hyperlink")):
+        relationship_id = hyperlink.get(f"{{{R_NS}}}id")
+        if not relationship_id:
+            # Internal bookmark links use w:anchor and have no relationship.
+            continue
+        url = relationships.get(relationship_id)
+        if url is None:
+            raise ValueError(f"Hyperlink relationship {relationship_id!r} is missing")
+        label_parts: list[str] = []
+        for run in hyperlink.iter(w("r")):
+            direct_run_urls[id(run)] = url
+            for child in list(run):
+                if child.tag == w("t"):
+                    label_parts.append(child.text or "")
+                elif child.tag == w("tab"):
+                    label_parts.append("\t")
+                elif child.tag in {w("br"), w("cr")}:
+                    label_parts.append("\n")
+        label = "".join(label_parts).strip()
+        if label:
+            direct_links.append(Link(label=label, url=url))
+
+    def append_text(text: str, bold: bool, italic: bool, url: str | None) -> None:
         nonlocal field
         if not text:
             return
@@ -315,9 +410,10 @@ def parse_paragraph(element: ET.Element) -> Paragraph:
                 assert isinstance(display, list)
                 display.append(Segment(text, bold, italic))
             return
-        segments.append(Segment(text, bold, italic))
+        segments.append(Segment(text, bold, italic, url))
 
     for run in element.iter(w("r")):
+        direct_url = direct_run_urls.get(id(run))
         run_properties = run.find(f"./{w('rPr')}")
         bold = xml_bool(run_properties.find(f"./{w('b')}") if run_properties is not None else None)
         italic = xml_bool(run_properties.find(f"./{w('i')}") if run_properties is not None else None)
@@ -344,7 +440,7 @@ def parse_paragraph(element: ET.Element) -> Paragraph:
                     label = "".join(segment.text for segment in display_segments).strip()
                     if match and label:
                         url = match.group(1).strip()
-                        links.append(Link(label=label, url=url))
+                        field_links.append(Link(label=label, url=url))
                         segments.append(Segment(label, url=url))
                     elif label:
                         segments.extend(display_segments)
@@ -355,11 +451,11 @@ def parse_paragraph(element: ET.Element) -> Paragraph:
                     raise ValueError("Field instruction without field start")
                 field["instruction"] = str(field["instruction"]) + (child.text or "")
             elif child.tag == w("t"):
-                append_text(child.text or "", bold, italic)
+                append_text(child.text or "", bold, italic, direct_url)
             elif child.tag == w("tab"):
-                append_text("\t", bold, italic)
+                append_text("\t", bold, italic, direct_url)
             elif child.tag in {w("br"), w("cr")}:
-                append_text("\n", bold, italic)
+                append_text("\n", bold, italic, direct_url)
 
     if field is not None:
         raise ValueError("Unclosed DOCX field")
@@ -371,12 +467,19 @@ def parse_paragraph(element: ET.Element) -> Paragraph:
         markdown=markdown_from_segments(merged),
         max_size=max(sizes) if sizes else None,
         bullet=bullet,
-        links=tuple(links),
+        links=tuple(field_links + direct_links),
     )
 
 
-def parse_cell(element: ET.Element) -> Cell:
-    paragraphs = [parse_paragraph(p) for p in element.findall(f"./{w('p')}")]
+def parse_cell(
+    element: ET.Element,
+    relationships: dict[str, str] | None = None,
+) -> Cell:
+    relationships = relationships or {}
+    paragraphs = [
+        parse_paragraph(paragraph, relationships)
+        for paragraph in element.findall(f"./{w('p')}")
+    ]
     nonempty = [paragraph for paragraph in paragraphs if paragraph.plain]
     return Cell(
         plain="\n".join(paragraph.plain for paragraph in nonempty),
@@ -385,10 +488,16 @@ def parse_cell(element: ET.Element) -> Cell:
     )
 
 
-def parse_table(element: ET.Element) -> Table:
+def parse_table(
+    element: ET.Element,
+    relationships: dict[str, str] | None = None,
+) -> Table:
+    relationships = relationships or {}
     rows: list[tuple[Cell, ...]] = []
     for row in element.findall(f"./{w('tr')}"):
-        cells = tuple(parse_cell(cell) for cell in row.findall(f"./{w('tc')}"))
+        cells = tuple(
+            parse_cell(cell, relationships) for cell in row.findall(f"./{w('tc')}")
+        )
         rows.append(cells)
     return Table(rows=tuple(rows))
 
@@ -405,6 +514,7 @@ def parse_document(path: Path, spec: InputSpec, allow_changed_input: bool) -> Do
     try:
         with zipfile.ZipFile(path) as archive:
             root = ET.fromstring(archive.read("word/document.xml"))
+            relationships = parse_relationships(archive)
     except (zipfile.BadZipFile, KeyError, ET.ParseError) as error:
         raise ValueError(f"Cannot parse DOCX {path}: {error}") from error
 
@@ -418,13 +528,13 @@ def parse_document(path: Path, spec: InputSpec, allow_changed_input: bool) -> Do
     link_count = 0
     for index, child in enumerate(list(body)):
         if child.tag == w("p"):
-            paragraph = parse_paragraph(child)
+            paragraph = parse_paragraph(child, relationships)
             paragraph_count += 1
             nonempty_paragraph_count += bool(paragraph.plain)
             link_count += len(paragraph.links)
             blocks.append(Block(index=index, kind="paragraph", value=paragraph))
         elif child.tag == w("tbl"):
-            table = parse_table(child)
+            table = parse_table(child, relationships)
             table_count += 1
             link_count += sum(len(cell.links) for row in table.rows for cell in row)
             blocks.append(Block(index=index, kind="table", value=table))
@@ -461,10 +571,18 @@ def is_card_start(block: Block) -> bool:
     paragraph = block.value
     assert isinstance(paragraph, Paragraph)
     return (
-        paragraph.max_size == 76
+        "\n" not in paragraph.plain
+        and len(paragraph.plain) <= 120
         and "牌義解析：" in paragraph.plain
         and "正逆位" in paragraph.plain
     )
+
+
+def minor_title_prefixes(card: CardSpec) -> tuple[str, ...]:
+    prefixes = [f"{card.name_zh}牌義解析：{card.name_en} 正逆位"]
+    if card.name_zh.endswith("牌"):
+        prefixes.append(f"{card.name_zh}義解析：{card.name_en} 正逆位")
+    return tuple(prefixes)
 
 
 def validate_start_title(paragraph: Paragraph, card: CardSpec) -> None:
@@ -478,19 +596,58 @@ def validate_start_title(paragraph: Paragraph, card: CardSpec) -> None:
                 f"Major title mismatch for {card.id}: {(number, name_zh, name_en)}"
             )
     else:
-        expected_prefix = f"{card.name_zh}牌義解析：{card.name_en} 正逆位"
-        if not paragraph.plain.startswith(expected_prefix):
+        if not paragraph.plain.startswith(minor_title_prefixes(card)):
             raise ValueError(
-                f"Wands title mismatch for {card.id}: {paragraph.plain!r}"
+                f"Minor card title mismatch for {card.id}: {paragraph.plain!r}"
             )
 
 
-def split_document(document: Document) -> tuple[tuple[Block, ...], list[tuple[CardSpec, tuple[Block, ...]]]]:
-    positions = [index for index, block in enumerate(document.blocks) if is_card_start(block)]
-    if len(positions) != len(document.spec.cards):
-        raise ValueError(
-            f"{document.path.name}: expected {len(document.spec.cards)} card starts, got {len(positions)}"
+def start_title_matches_card(paragraph: Paragraph, card: CardSpec) -> bool:
+    if card.arcana == "major":
+        match = re.match(r"^(\d{1,2})\s+(.+?)牌義解析：(.+?)\s+正逆位", paragraph.plain)
+        if not match:
+            return False
+        return (int(match.group(1)), match.group(2), match.group(3)) == (
+            card.number,
+            card.name_zh,
+            card.name_en,
         )
+    return paragraph.plain.startswith(minor_title_prefixes(card))
+
+
+def split_document(document: Document) -> tuple[tuple[Block, ...], list[tuple[CardSpec, tuple[Block, ...]]]]:
+    positions: list[int] = []
+    for card in document.spec.cards:
+        candidates = [
+            index
+            for index, block in enumerate(document.blocks)
+            if is_card_start(block)
+            and isinstance(block.value, Paragraph)
+            and start_title_matches_card(block.value, card)
+        ]
+        if not candidates:
+            raise ValueError(f"{document.path.name}: missing card start for {card.id}")
+        # Some older Pages exports repeat the article title inside a card.
+        # The true boundary is the largest title instance, regardless of the
+        # absolute point size used by that particular export.
+        largest_size = max(
+            (document.blocks[index].value.max_size or -1)  # type: ignore[union-attr]
+            for index in candidates
+        )
+        largest_candidates = [
+            index
+            for index in candidates
+            if isinstance(document.blocks[index].value, Paragraph)
+            and (document.blocks[index].value.max_size or -1) == largest_size
+        ]
+        if len(largest_candidates) != 1:
+            raise ValueError(
+                f"{document.path.name}: ambiguous card start for {card.id}: "
+                f"{largest_candidates}"
+            )
+        positions.append(largest_candidates[0])
+    if positions != sorted(positions) or len(set(positions)) != len(positions):
+        raise ValueError(f"{document.path.name}: card starts are out of order")
     spans: list[tuple[CardSpec, tuple[Block, ...]]] = []
     for card_index, (position, card) in enumerate(zip(positions, document.spec.cards)):
         paragraph = document.blocks[position].value
@@ -645,20 +802,23 @@ def frontmatter(card: CardSpec, blocks: Sequence[Block]) -> str:
 SUMMARY_LABELS = {"正位重點", "逆位重點", "感情提醒", "工作提醒"}
 COMBINATION_HEADING_RE = re.compile(r"組合牌義.*(其他|搭配)")
 MAIN_SECTION_RE = re.compile(
-    r"(牌義快速摘要$|關鍵特徵$|^牌面描述$|^牌面象徵解析$|^深層含義$|"
-    r"人物特質|(?:正位|逆位)牌義.*整體解讀|牌陣.*解讀|是(?:或|／|/)否|"
+    r"(牌義快速摘要$|是什麼[？?]$|關鍵特徵$|^牌面描述$|^牌面象徵解析$|^深層含義$|"
+    r"人物特質|(?:正位|逆位)牌義.*整體解讀|牌陣.*(?:解讀|解釋)|是(?:或|／|/)否|"
     r"Yes\s*(?:or|/|／)\s*No|初學者.*(?:誤解|牌義)|常見問題|FAQ|Q&A)",
     re.IGNORECASE,
 )
 
 
-def render_paragraph(paragraph: Paragraph, foundation: bool = False) -> str:
+def render_paragraph(
+    paragraph: Paragraph,
+    foundation: bool = False,
+    card: CardSpec | None = None,
+    bullet_override: bool | None = None,
+) -> str:
     text = paragraph.markdown
     plain = paragraph.plain
     if not plain:
         return ""
-    if paragraph.bullet:
-        return f"- {text.replace(chr(10), chr(10) + '  ')}"
     if plain in SUMMARY_LABELS:
         return f"### {plain}"
     # Section keywords can also occur inside complete answer paragraphs (for
@@ -672,6 +832,18 @@ def render_paragraph(paragraph: Paragraph, foundation: bool = False) -> str:
     )
     if not foundation and explicit_main_section:
         return f"## {plain}"
+    if card is not None and card.suit == "cups":
+        if paragraph.max_size == 51:
+            return f"## {plain}"
+        if paragraph.max_size == 42:
+            return f"### {plain}"
+        if paragraph.max_size == 36:
+            level = "####" if plain in {"單身者", "有伴侶者"} else "###"
+            return f"{level} {plain}"
+
+    render_as_bullet = paragraph.bullet if bullet_override is None else bullet_override
+    if render_as_bullet:
+        return f"- {text.replace(chr(10), chr(10) + '  ')}"
     if paragraph.max_size in {68, 42}:
         return f"{'###' if foundation else '##'} {plain}"
     if paragraph.max_size == 56:
@@ -679,6 +851,20 @@ def render_paragraph(paragraph: Paragraph, foundation: bool = False) -> str:
     if foundation and paragraph.max_size in {40, 48, 50}:
         return f"## {plain}"
     return text
+
+
+CUPS_EXCLUDED_PARAGRAPH_PREFIXES = (
+    "塔羅牌 78 張總表",
+    "想完整收藏聖杯侍者牌義與 78 張牌義？",
+    "這篇屬於付費牌義內容",
+)
+
+
+def is_excluded_card_paragraph(card: CardSpec, paragraph: Paragraph) -> bool:
+    return card.source_id == "src-cups-01-14" and any(
+        paragraph.plain.startswith(prefix)
+        for prefix in CUPS_EXCLUDED_PARAGRAPH_PREFIXES
+    )
 
 
 def append_block(output: list[str], rendered: str) -> None:
@@ -707,6 +893,8 @@ def render_card(card: CardSpec, blocks: Sequence[Block]) -> str:
         f"> 本檔由 `{card.source_id}` 匯入，尚待人工校對；內容不確定時請回查來源。",
     ]
     combination_inserted = False
+    ace_metadata_labels: set[str] = set()
+    ace_metadata_expected = {"關鍵詞", "元素", "行星", "星座", "關鍵日期"}
     for block_index, block in enumerate(blocks):
         if block_index == 0 or block.kind == "section":
             continue
@@ -720,15 +908,41 @@ def render_card(card: CardSpec, blocks: Sequence[Block]) -> str:
             continue
         paragraph = block.value
         assert isinstance(paragraph, Paragraph)
+        if is_excluded_card_paragraph(card, paragraph):
+            continue
         if is_separator(paragraph.plain):
             continue
         if normalize_title(paragraph.plain) == source_title and "牌義解析：" in paragraph.plain:
             continue
         if COMBINATION_HEADING_RE.search(paragraph.plain):
             continue
-        append_block(output, render_paragraph(paragraph))
+        bullet_override: bool | None = None
+        if card.id == "minor-cups-01-ace-of-cups":
+            # The export accidentally carries list formatting through most
+            # of this article.  Preserve only the first occurrence of each
+            # of the five intended metadata fields.
+            bullet_override = False
+            label_match = re.match(r"^([^：:]+)\s*[:：]", paragraph.plain)
+            if label_match:
+                label = label_match.group(1).strip()
+                if label in ace_metadata_expected and label not in ace_metadata_labels:
+                    ace_metadata_labels.add(label)
+                    bullet_override = True
+        append_block(
+            output,
+            render_paragraph(
+                paragraph,
+                card=card,
+                bullet_override=bullet_override,
+            ),
+        )
     if card.arcana == "major" and not combination_inserted:
         raise ValueError(f"Missing combination table placeholder in {card.id}")
+    if card.id == "minor-cups-01-ace-of-cups" and ace_metadata_labels != ace_metadata_expected:
+        raise ValueError(
+            f"{card.id}: missing Ace metadata bullets: "
+            f"{sorted(ace_metadata_expected - ace_metadata_labels)}"
+        )
     while output and output[-1] == "":
         output.pop()
     return "\n".join(output) + "\n"
@@ -850,11 +1064,19 @@ def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[s
     outputs: dict[str, str] = {}
     combination_edges: set[tuple[int, int]] = set()
     card_count = 0
+    excluded_hyperlinks = 0
     preambles: dict[str, tuple[Block, ...]] = {}
     for document in documents:
         preamble, spans = split_document(document)
         preambles[document.spec.key] = preamble
         for card, blocks in spans:
+            excluded_hyperlinks += sum(
+                len(block.value.links)
+                for block in blocks
+                if block.kind == "paragraph"
+                and isinstance(block.value, Paragraph)
+                and is_excluded_card_paragraph(card, block.value)
+            )
             if card.path in outputs:
                 raise ValueError(f"Duplicate output path {card.path}")
             outputs[card.path] = render_card(card, blocks)
@@ -890,11 +1112,16 @@ def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[s
         warnings=("第二段停在「帶回生活的指」，疑似原稿已截斷；需回原稿人工補字。",),
     )
 
-    links_total = sum(document.link_count for document in documents)
-    if links_total != 494:
-        raise ValueError(f"Expected 494 hyperlinks, got {links_total}")
-    if card_count != 36:
-        raise ValueError(f"Expected 36 cards, got {card_count}")
+    source_links_total = sum(document.link_count for document in documents)
+    if source_links_total != 525:
+        raise ValueError(f"Expected 525 source hyperlinks, got {source_links_total}")
+    if excluded_hyperlinks != 3:
+        raise ValueError(f"Expected 3 excluded hyperlinks, got {excluded_hyperlinks}")
+    preserved_links_total = source_links_total - excluded_hyperlinks
+    if preserved_links_total != 522:
+        raise ValueError(f"Expected 522 preserved hyperlinks, got {preserved_links_total}")
+    if card_count != 50:
+        raise ValueError(f"Expected 50 cards, got {card_count}")
     combo_file_count = sum(path.startswith("knowledge/combinations/major-arcana/") for path in outputs)
     if combo_file_count != 22:
         raise ValueError(f"Expected 22 combination files, got {combo_file_count}")
@@ -904,15 +1131,18 @@ def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[s
         "publish_allowed": False,
         "rights_status": "unknown",
         "cards": {
-            "total": 36,
+            "total": 50,
             "major_arcana": 22,
             "wands": 14,
+            "cups": 14,
         },
         "combination_files": 22,
         "directional_combination_rows": len(combination_edges),
         "undirected_major_pairs": 231,
         "foundation_files": 2,
-        "hyperlinks_preserved": links_total,
+        "source_hyperlinks_detected": source_links_total,
+        "hyperlinks_excluded": excluded_hyperlinks,
+        "hyperlinks_preserved": preserved_links_total,
         "source_documents": {
             document.spec.key: {
                 "filename": document.path.name,
@@ -927,11 +1157,14 @@ def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[s
         "warnings": [
             "權杖前言第二段疑似截斷，結尾為「帶回生活的指」。",
             "大秘儀前言的「廷牌」可能應為「宮廷牌」。",
+            "聖杯侍者牌尾的導覽與付費推廣共 3 段已排除，其中含 3 個超連結。",
             "所有匯入內容 review_status 均為 draft，尚待逐張人工校對。",
             "來源權利狀態仍為 unknown，不得推送牌義全文到公開 GitHub。",
         ],
     }
     outputs["qa/import-report.json"] = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
+    if len(outputs) != 75:
+        raise ValueError(f"Expected 75 output files, got {len(outputs)}")
     return outputs, report
 
 
@@ -968,6 +1201,7 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser.add_argument("--major-00-05", type=Path, required=True)
     parser.add_argument("--major-06-21", type=Path, required=True)
     parser.add_argument("--wands-01-14", type=Path, required=True)
+    parser.add_argument("--cups-01-14", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, default=Path.cwd())
     parser.add_argument(
         "--write",
@@ -988,11 +1222,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         "major_00_05": args.major_00_05,
         "major_06_21": args.major_06_21,
         "wands_01_14": args.wands_01_14,
+        "cups_01_14": args.cups_01_14,
     }
     try:
         documents = [
             parse_document(paths[key], INPUT_SPECS[key], args.allow_changed_input)
-            for key in ("major_00_05", "major_06_21", "wands_01_14")
+            for key in ("major_00_05", "major_06_21", "wands_01_14", "cups_01_14")
         ]
         outputs, report = build_outputs(documents)
         if args.write:

@@ -9,7 +9,7 @@
 - `draft`：牌卡 Markdown 已建立，仍待人工審核。
 - `reviewed`：內容與來源已人工審核，且 `last_reviewed` 已填日期。
 
-目前本機已建立並通過結構檢查的 22 張大秘儀與 14 張權杖為 `draft`；聖杯、寶劍、錢幣共 42 張仍是 `missing`。`draft` 只表示機器匯入成功，仍需逐張人工校對後才能改成 `reviewed`。
+目前本機已建立並通過結構檢查的 22 張大秘儀、14 張權杖與 14 張聖杯為 `draft`；寶劍、錢幣共 28 張仍是 `missing`。`draft` 只表示機器匯入成功，仍需逐張人工校對後才能改成 `reviewed`。
 
 此狀態描述本機知識工作區；在 `publish: false` 期間，公開 GitHub 鏡像不會包含對應的牌義正文，即使目錄已標示為 `draft`。
 
@@ -18,3 +18,5 @@
 `sources.yaml` 只記錄來源身分、涵蓋範圍與授權狀態。`rights_status: unknown` 且 `publish: false` 表示原文及其衍生牌義不可推送到公開 GitHub；可以公開資料結構、目錄與不含原文的工具。
 
 卡片 frontmatter 的格式由 `schemas/card.schema.json` 定義。缺少的對應資訊一律保留 `null`，不可為了通過檢查自行補寫。
+
+`card-index.json` 會從牌檔正文衍生 `sections`，固定提供 `key_features`、`visual_description`、`symbolism`、`deeper_meaning`、`person_traits` 五個入口。長文仍只保存在 Markdown 正文，不重複塞進 frontmatter。

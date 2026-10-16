@@ -51,21 +51,21 @@ cards:
   - {id: minor-wands-13-queen-of-wands, path: knowledge/cards/minor-arcana/wands/13-queen-of-wands.md, arcana: minor, suit: wands, number: 13, rank: queen, name_zh: 權杖皇后, name_en: Queen of Wands, status: draft, source_ids: [src-wands-01-14]}
   - {id: minor-wands-14-king-of-wands, path: knowledge/cards/minor-arcana/wands/14-king-of-wands.md, arcana: minor, suit: wands, number: 14, rank: king, name_zh: 權杖國王, name_en: King of Wands, status: draft, source_ids: [src-wands-01-14]}
 
-  # Cups — no source yet.
-  - {id: minor-cups-01-ace-of-cups, path: knowledge/cards/minor-arcana/cups/01-ace-of-cups.md, arcana: minor, suit: cups, number: 1, rank: ace, name_zh: 聖杯王牌, name_en: Ace of Cups, status: missing, source_ids: []}
-  - {id: minor-cups-02-two-of-cups, path: knowledge/cards/minor-arcana/cups/02-two-of-cups.md, arcana: minor, suit: cups, number: 2, rank: two, name_zh: 聖杯二, name_en: Two of Cups, status: missing, source_ids: []}
-  - {id: minor-cups-03-three-of-cups, path: knowledge/cards/minor-arcana/cups/03-three-of-cups.md, arcana: minor, suit: cups, number: 3, rank: three, name_zh: 聖杯三, name_en: Three of Cups, status: missing, source_ids: []}
-  - {id: minor-cups-04-four-of-cups, path: knowledge/cards/minor-arcana/cups/04-four-of-cups.md, arcana: minor, suit: cups, number: 4, rank: four, name_zh: 聖杯四, name_en: Four of Cups, status: missing, source_ids: []}
-  - {id: minor-cups-05-five-of-cups, path: knowledge/cards/minor-arcana/cups/05-five-of-cups.md, arcana: minor, suit: cups, number: 5, rank: five, name_zh: 聖杯五, name_en: Five of Cups, status: missing, source_ids: []}
-  - {id: minor-cups-06-six-of-cups, path: knowledge/cards/minor-arcana/cups/06-six-of-cups.md, arcana: minor, suit: cups, number: 6, rank: six, name_zh: 聖杯六, name_en: Six of Cups, status: missing, source_ids: []}
-  - {id: minor-cups-07-seven-of-cups, path: knowledge/cards/minor-arcana/cups/07-seven-of-cups.md, arcana: minor, suit: cups, number: 7, rank: seven, name_zh: 聖杯七, name_en: Seven of Cups, status: missing, source_ids: []}
-  - {id: minor-cups-08-eight-of-cups, path: knowledge/cards/minor-arcana/cups/08-eight-of-cups.md, arcana: minor, suit: cups, number: 8, rank: eight, name_zh: 聖杯八, name_en: Eight of Cups, status: missing, source_ids: []}
-  - {id: minor-cups-09-nine-of-cups, path: knowledge/cards/minor-arcana/cups/09-nine-of-cups.md, arcana: minor, suit: cups, number: 9, rank: nine, name_zh: 聖杯九, name_en: Nine of Cups, status: missing, source_ids: []}
-  - {id: minor-cups-10-ten-of-cups, path: knowledge/cards/minor-arcana/cups/10-ten-of-cups.md, arcana: minor, suit: cups, number: 10, rank: ten, name_zh: 聖杯十, name_en: Ten of Cups, status: missing, source_ids: []}
-  - {id: minor-cups-11-page-of-cups, path: knowledge/cards/minor-arcana/cups/11-page-of-cups.md, arcana: minor, suit: cups, number: 11, rank: page, name_zh: 聖杯侍者, name_en: Page of Cups, status: missing, source_ids: []}
-  - {id: minor-cups-12-knight-of-cups, path: knowledge/cards/minor-arcana/cups/12-knight-of-cups.md, arcana: minor, suit: cups, number: 12, rank: knight, name_zh: 聖杯騎士, name_en: Knight of Cups, status: missing, source_ids: []}
-  - {id: minor-cups-13-queen-of-cups, path: knowledge/cards/minor-arcana/cups/13-queen-of-cups.md, arcana: minor, suit: cups, number: 13, rank: queen, name_zh: 聖杯皇后, name_en: Queen of Cups, status: missing, source_ids: []}
-  - {id: minor-cups-14-king-of-cups, path: knowledge/cards/minor-arcana/cups/14-king-of-cups.md, arcana: minor, suit: cups, number: 14, rank: king, name_zh: 聖杯國王, name_en: King of Cups, status: missing, source_ids: []}
+  # Cups — imported locally as draft; source-derived card files stay out of the public mirror.
+  - {id: minor-cups-01-ace-of-cups, path: knowledge/cards/minor-arcana/cups/01-ace-of-cups.md, arcana: minor, suit: cups, number: 1, rank: ace, name_zh: 聖杯王牌, name_en: Ace of Cups, status: draft, source_ids: [src-cups-01-14]}
+  - {id: minor-cups-02-two-of-cups, path: knowledge/cards/minor-arcana/cups/02-two-of-cups.md, arcana: minor, suit: cups, number: 2, rank: two, name_zh: 聖杯二, name_en: Two of Cups, status: draft, source_ids: [src-cups-01-14]}
+  - {id: minor-cups-03-three-of-cups, path: knowledge/cards/minor-arcana/cups/03-three-of-cups.md, arcana: minor, suit: cups, number: 3, rank: three, name_zh: 聖杯三, name_en: Three of Cups, status: draft, source_ids: [src-cups-01-14]}
+  - {id: minor-cups-04-four-of-cups, path: knowledge/cards/minor-arcana/cups/04-four-of-cups.md, arcana: minor, suit: cups, number: 4, rank: four, name_zh: 聖杯四, name_en: Four of Cups, status: draft, source_ids: [src-cups-01-14]}
+  - {id: minor-cups-05-five-of-cups, path: knowledge/cards/minor-arcana/cups/05-five-of-cups.md, arcana: minor, suit: cups, number: 5, rank: five, name_zh: 聖杯五, name_en: Five of Cups, status: draft, source_ids: [src-cups-01-14]}
+  - {id: minor-cups-06-six-of-cups, path: knowledge/cards/minor-arcana/cups/06-six-of-cups.md, arcana: minor, suit: cups, number: 6, rank: six, name_zh: 聖杯六, name_en: Six of Cups, status: draft, source_ids: [src-cups-01-14]}
+  - {id: minor-cups-07-seven-of-cups, path: knowledge/cards/minor-arcana/cups/07-seven-of-cups.md, arcana: minor, suit: cups, number: 7, rank: seven, name_zh: 聖杯七, name_en: Seven of Cups, status: draft, source_ids: [src-cups-01-14]}
+  - {id: minor-cups-08-eight-of-cups, path: knowledge/cards/minor-arcana/cups/08-eight-of-cups.md, arcana: minor, suit: cups, number: 8, rank: eight, name_zh: 聖杯八, name_en: Eight of Cups, status: draft, source_ids: [src-cups-01-14]}
+  - {id: minor-cups-09-nine-of-cups, path: knowledge/cards/minor-arcana/cups/09-nine-of-cups.md, arcana: minor, suit: cups, number: 9, rank: nine, name_zh: 聖杯九, name_en: Nine of Cups, status: draft, source_ids: [src-cups-01-14]}
+  - {id: minor-cups-10-ten-of-cups, path: knowledge/cards/minor-arcana/cups/10-ten-of-cups.md, arcana: minor, suit: cups, number: 10, rank: ten, name_zh: 聖杯十, name_en: Ten of Cups, status: draft, source_ids: [src-cups-01-14]}
+  - {id: minor-cups-11-page-of-cups, path: knowledge/cards/minor-arcana/cups/11-page-of-cups.md, arcana: minor, suit: cups, number: 11, rank: page, name_zh: 聖杯侍者, name_en: Page of Cups, status: draft, source_ids: [src-cups-01-14]}
+  - {id: minor-cups-12-knight-of-cups, path: knowledge/cards/minor-arcana/cups/12-knight-of-cups.md, arcana: minor, suit: cups, number: 12, rank: knight, name_zh: 聖杯騎士, name_en: Knight of Cups, status: draft, source_ids: [src-cups-01-14]}
+  - {id: minor-cups-13-queen-of-cups, path: knowledge/cards/minor-arcana/cups/13-queen-of-cups.md, arcana: minor, suit: cups, number: 13, rank: queen, name_zh: 聖杯皇后, name_en: Queen of Cups, status: draft, source_ids: [src-cups-01-14]}
+  - {id: minor-cups-14-king-of-cups, path: knowledge/cards/minor-arcana/cups/14-king-of-cups.md, arcana: minor, suit: cups, number: 14, rank: king, name_zh: 聖杯國王, name_en: King of Cups, status: draft, source_ids: [src-cups-01-14]}
 
   # Swords — no source yet.
   - {id: minor-swords-01-ace-of-swords, path: knowledge/cards/minor-arcana/swords/01-ace-of-swords.md, arcana: minor, suit: swords, number: 1, rank: ace, name_zh: 寶劍王牌, name_en: Ace of Swords, status: missing, source_ids: []}

@@ -2,8 +2,9 @@
 .env
 .env.*
 
-# 原始 Pages 文件不進入公開 Git 歷史
+# 原始 Pages／DOCX 文件不進入公開 Git 歷史
 *.pages
+*.docx
 
 # Inbox 與原始來源預設只追蹤說明檔
 inbox/*

@@ -16,6 +16,8 @@ import sys
 from pathlib import Path
 from typing import Sequence
 
+from card_sections import extract_card_sections
+
 
 def parse_scalar(value: str) -> object:
     value = value.strip()
@@ -167,6 +169,9 @@ def build(root: Path, update_status: bool) -> tuple[list[dict[str, object]], dic
                 "last_reviewed",
             ):
                 entry[key] = metadata.get(key)
+            entry["sections"] = extract_card_sections(
+                card_path.read_text(encoding="utf-8")
+            )
             entry["status"] = metadata.get("review_status", "draft")
             entry["available_locally"] = True
             available_by_arcana[str(record["arcana"])] += 1

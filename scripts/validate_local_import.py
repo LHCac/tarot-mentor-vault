@@ -16,7 +16,12 @@ import sys
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
-from import_pages_docx import MAJORS, WANDS, CardSpec
+from card_sections import (
+    CANONICAL_SECTION_KEYS,
+    SECTION_LABELS,
+    find_card_sections,
+)
+from import_pages_docx import CUPS, MAJORS, WANDS, CardSpec
 
 
 CARD_FRONTMATTER_KEYS = {
@@ -56,10 +61,12 @@ FOUNDATION_FRONTMATTER_KEYS = {
 }
 CORRESPONDENCE_KEYS = {"element", "planet", "zodiac", "timing"}
 IMPORTED_FOUNDATION_FILES = 2
-IMPORTED_CARD_EXTERNAL_LINKS = 32
+IMPORTED_CARD_EXTERNAL_LINKS = 60
 IMPORTED_COMBINATION_EXTERNAL_LINKS = 462
-IMPORTED_EXTERNAL_LINKS_TOTAL = 494
-CURATED_CARD_EXTERNAL_LINKS = 29
+IMPORTED_EXTERNAL_LINKS_TOTAL = 522
+SOURCE_HYPERLINKS_DETECTED = 525
+EXCLUDED_SOURCE_HYPERLINKS = 3
+CURATED_CARD_EXTERNAL_LINKS = 57
 CURATED_CARD_EXTERNAL_LINK_DELTA = -3
 CURATED_FOUNDATION_REFERENCE_FILES = 1
 CURATED_FOUNDATION_FILES_TOTAL = 3
@@ -105,6 +112,7 @@ class Validation:
             "cards_total": 0,
             "cards_major_arcana": 0,
             "cards_wands": 0,
+            "cards_cups": 0,
             "combination_files": 0,
             "directional_combination_rows": 0,
             "undirected_major_pairs": 0,
@@ -339,6 +347,32 @@ def validate_card(validation: Validation, spec: CardSpec) -> int:
     check_single_h1(validation, path, body, f"{spec.name_zh}｜{spec.name_en}")
     for label, pattern in SEMANTIC_HEADINGS.items():
         validation.expect(pattern.search(body) is not None, path, f"body is missing a {label} semantic heading")
+
+    sections = find_card_sections(body)
+    counts = {
+        key: sum(section.key == key for section in sections)
+        for key in CANONICAL_SECTION_KEYS
+    }
+    for key in CANONICAL_SECTION_KEYS:
+        validation.expect(
+            counts[key] == 1,
+            path,
+            f"expected exactly one {SECTION_LABELS[key]} section, found {counts[key]}",
+        )
+    if all(counts[key] == 1 for key in CANONICAL_SECTION_KEYS):
+        actual_order = tuple(section.key for section in sections)
+        validation.expect(
+            actual_order == CANONICAL_SECTION_KEYS,
+            path,
+            "canonical sections must appear in order: "
+            + ", ".join(SECTION_LABELS[key] for key in CANONICAL_SECTION_KEYS),
+        )
+        for section in sections:
+            validation.expect(
+                bool(section.content),
+                path,
+                f"{SECTION_LABELS[section.key]} section must not be empty",
+            )
     return len(MARKDOWN_EXTERNAL_LINK_RE.findall(body))
 
 
@@ -540,6 +574,7 @@ def validate_import_report(validation: Validation) -> None:
         ("cards", "total"): validation.counts["cards_total"],
         ("cards", "major_arcana"): validation.counts["cards_major_arcana"],
         ("cards", "wands"): validation.counts["cards_wands"],
+        ("cards", "cups"): validation.counts["cards_cups"],
         ("combination_files",): validation.counts["combination_files"],
         ("directional_combination_rows",): validation.counts["directional_combination_rows"],
         ("undirected_major_pairs",): validation.counts["undirected_major_pairs"],
@@ -547,6 +582,8 @@ def validate_import_report(validation: Validation) -> None:
         # overrides may later remove a bad source link or add an authored
         # foundation without rewriting that provenance report.
         ("foundation_files",): IMPORTED_FOUNDATION_FILES,
+        ("source_hyperlinks_detected",): SOURCE_HYPERLINKS_DETECTED,
+        ("hyperlinks_excluded",): EXCLUDED_SOURCE_HYPERLINKS,
         ("hyperlinks_preserved",): IMPORTED_EXTERNAL_LINKS_TOTAL,
     }
     for key_path, expected in checks.items():
@@ -571,13 +608,15 @@ def compare_path_sets(
 
 def validate_repository(root: Path) -> Validation:
     validation = Validation(root)
-    cards = tuple(MAJORS) + tuple(WANDS)
+    cards = tuple(MAJORS) + tuple(WANDS) + tuple(CUPS)
 
     major_numbers = {card.number for card in MAJORS}
     wand_numbers = {card.number for card in WANDS}
+    cup_numbers = {card.number for card in CUPS}
     validation.expect(major_numbers == set(range(22)), "card registry", "Major Arcana numbers must be exactly 0 through 21")
     validation.expect(22 not in major_numbers, "card registry", "RWS Major Arcana must not contain card number 22")
     validation.expect(wand_numbers == set(range(1, 15)), "card registry", "Wands numbers must be exactly 1 through 14")
+    validation.expect(cup_numbers == set(range(1, 15)), "card registry", "Cups numbers must be exactly 1 through 14")
     major_by_english_name = {card.name_en: card.number for card in MAJORS}
     for name, number in RWS_MAJOR_NUMBERS.items():
         validation.expect(major_by_english_name.get(name) == number, "card registry", f"RWS numbering requires {name} at {number}")
@@ -593,9 +632,13 @@ def validate_repository(root: Path) -> Validation:
     validation.counts["cards_wands"] = len(
         actual_content_paths(root / "knowledge/cards/minor-arcana/wands")
     )
-    validation.expect(validation.counts["cards_total"] == 36, "knowledge/cards", f"expected 36 card files, found {validation.counts['cards_total']}")
+    validation.counts["cards_cups"] = len(
+        actual_content_paths(root / "knowledge/cards/minor-arcana/cups")
+    )
+    validation.expect(validation.counts["cards_total"] == 50, "knowledge/cards", f"expected 50 card files, found {validation.counts['cards_total']}")
     validation.expect(validation.counts["cards_major_arcana"] == 22, "knowledge/cards/major-arcana", f"expected 22 Major Arcana files, found {validation.counts['cards_major_arcana']}")
     validation.expect(validation.counts["cards_wands"] == 14, "knowledge/cards/minor-arcana/wands", f"expected 14 Wands files, found {validation.counts['cards_wands']}")
+    validation.expect(validation.counts["cards_cups"] == 14, "knowledge/cards/minor-arcana/cups", f"expected 14 Cups files, found {validation.counts['cards_cups']}")
 
     card_links = 0
     for card in cards:

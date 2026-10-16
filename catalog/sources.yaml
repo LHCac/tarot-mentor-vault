@@ -38,3 +38,18 @@ sources:
     rights_status: unknown
     publish: false
     notes: "原稿含第三方推薦連結；已移出牌義正文並於本機來源審核表保留。公開前需確認內容來源與授權。"
+
+  - id: src-cups-01-14
+    title: "聖杯 1–14 本機原稿"
+    local_filename: "聖杯系列.docx"
+    media_type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+    sha256: "ffebf0286847c9a71dca3f53b6f582c135554a6779f65670327707026756ad99"
+    coverage:
+      arcana: minor
+      suit: cups
+      number_from: 1
+      number_to: 14
+      expected_card_count: 14
+    rights_status: unknown
+    publish: false
+    notes: "原稿含 3 個網站導覽／訂閱連結，匯入時排除正文並於本機來源審核表保留。內容與外部網站高度相似，公開前需確認作者身分與授權。"
