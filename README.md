@@ -25,6 +25,7 @@
 2. 單牌基礎解讀查 `knowledge/cards/`；正逆位與問題主題都留在同一張牌檔。
 3. 兩張大秘儀同時出現時，再查 `knowledge/combinations/major-arcana/`。組合資料有方向性，A → B 與 B → A 必須分開讀。
 4. 依牌陣位置做綜合推論，並區分「原稿明確記載」與「根據牌陣延伸」。
+5. 解讀完成後可用 `readings/templates/reading-record.md` 保存紀錄；含個人資訊的版本放在 `readings/private/`，匿名後才可移至 `readings/examples/`。
 
 ### 教學
 
@@ -53,6 +54,7 @@
 - `qa/`：匯入結果與驗證基線
 - `scripts/`：DOCX 轉換、索引與驗證工具
 - `mentor/`：AI 導師的回答與安全規則
+- `readings/`：問牌模板、匿名案例與不公開的個人回顧
 
 ## 資料政策
 
