@@ -1,8 +1,8 @@
 # 資料轉換與索引工具
 
-這些工具只使用 Python 標準函式庫。三份 Pages 原稿先由 Pages 匯出成暫存 DOCX，另直接讀取一份聖杯 DOCX；原始 `.pages`／`.docx` 不會被修改，也不會被工具搬動。
+這些工具只使用 Python 標準函式庫。三份 Pages 原稿先由 Pages 匯出成暫存 DOCX，另直接讀取聖杯、寶劍、錢幣與補充資料四份 DOCX；原始 `.pages`／`.docx` 不會被修改，也不會被工具搬動。
 
-## 匯入目前四份原稿
+## 匯入目前七份原稿
 
 先做唯讀檢查：
 
@@ -12,10 +12,13 @@ python3 -B scripts/import_pages_docx.py \
   --major-06-21 /private/tmp/tarot_pages_export/docx/major_06_21.docx \
   --wands-01-14 /private/tmp/tarot_pages_export/docx/wands_01_14.docx \
   --cups-01-14 "/path/to/聖杯系列.docx" \
+  --swords-01-14 "/path/to/寶劍系列.docx" \
+  --pentacles-01-14 "/path/to/錢幣牌組.docx" \
+  --supplemental-guides "/path/to/補充資料.docx" \
   --output-root .
 ```
 
-檢查全綠後，加上 `--write` 才會建立本機檔案。匯入器會先驗證來源雜湊、50 張牌的順序、22 張組合表、462 筆方向式組合及 525 個來源超連結；聖杯原稿的 3 個網站導覽／訂閱連結會排除，因此輸出保留 522 個外連。任何一項不符就停止，不寫正式檔。它也會解析 Pages 在同一 DOCX 段落內的手動換行，避免對應資料只擷取到第一行。
+檢查全綠後，加上 `--write` 才會建立本機檔案。匯入器會先驗證來源雜湊、78 張牌的順序、22 張組合表、462 筆方向式組合及 605 個來源超連結；聖杯原稿的 3 個網站導覽／訂閱連結會排除，因此輸出保留 602 個外連。補充資料會拆成 1 份基礎檔與 4 份課程原稿；其中兩張示意圖仍只保留在原始 DOCX。任何一項不符就停止，不寫正式檔。它也會解析 Pages 在同一 DOCX 段落內的手動換行，避免對應資料只擷取到第一行。
 
 ## 建立本機搜尋索引
 
@@ -25,8 +28,8 @@ python3 -B scripts/build_local_catalog.py --root . --write --update-deck-status
 
 輸出：
 
-- `catalog/card-index.json`：78 張牌的統一搜尋入口；已有內容的 50 張會附摘要、關鍵字與五個標準內容區塊。
-- `catalog/coverage.json`：目前覆蓋率、花色統計與缺少的 28 張牌。
+- `catalog/card-index.json`：78 張牌的統一搜尋入口；每張都附摘要、關鍵字與五個標準內容區塊。
+- `catalog/coverage.json`：目前覆蓋率、花色統計與缺漏狀態。
 
 ## 套用已核准的本機校訂
 
@@ -62,7 +65,7 @@ python3 -B scripts/lint_editorial_risks.py --root .
 python3 -B scripts/validate_local_import.py --root .
 ```
 
-驗證器會重新檢查 50 張牌的 ID、檔名、frontmatter、單一 H1 與主要語義章節，並要求「關鍵特徵、牌面描述、牌面象徵解析、深層含義、人物特質」各出現一次且順序固定；同時比對 frontmatter 與正文第一組可見的元素、行星、星座與時間對應。它也會檢查 22 個大秘儀組合檔是否完整形成 462 筆有方向且不含自我配對的關係，並對校訂後的牌檔外連與基礎檔數量做防漂移斷言。
+驗證器會重新檢查 78 張牌的 ID、檔名、frontmatter、單一 H1 與主要語義章節，並要求「關鍵特徵、牌面描述、牌面象徵解析、深層含義、人物特質」各出現一次且順序固定；同時比對 frontmatter 與正文第一組可見的元素、行星、星座與時間對應。它也會檢查 22 個大秘儀組合檔是否完整形成 462 筆有方向且不含自我配對的關係，並對校訂後的牌檔外連、基礎檔與課程原稿數量做防漂移斷言。
 
 建議的完整順序是：匯入 → 依序套用各層本機覆寫 → 建立索引 → 結構驗證 → 編輯風險掃描。
 

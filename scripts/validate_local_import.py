@@ -21,7 +21,7 @@ from card_sections import (
     SECTION_LABELS,
     find_card_sections,
 )
-from import_pages_docx import CUPS, MAJORS, WANDS, CardSpec
+from import_pages_docx import CUPS, MAJORS, PENTACLES, SWORDS, WANDS, CardSpec
 
 
 CARD_FRONTMATTER_KEYS = {
@@ -60,16 +60,20 @@ FOUNDATION_FRONTMATTER_KEYS = {
     "last_reviewed",
 }
 CORRESPONDENCE_KEYS = {"element", "planet", "zodiac", "timing"}
-IMPORTED_FOUNDATION_FILES = 2
-IMPORTED_CARD_EXTERNAL_LINKS = 60
+IMPORTED_FOUNDATION_FILES = 4
+IMPORTED_LESSON_SOURCE_FILES = 4
+IMPORTED_SOURCE_MATERIAL_FILES = 8
+IMPORTED_CARD_EXTERNAL_LINKS = 115
 IMPORTED_COMBINATION_EXTERNAL_LINKS = 462
-IMPORTED_EXTERNAL_LINKS_TOTAL = 522
-SOURCE_HYPERLINKS_DETECTED = 525
+IMPORTED_EXTERNAL_LINKS_TOTAL = 602
+SOURCE_HYPERLINKS_DETECTED = 605
 EXCLUDED_SOURCE_HYPERLINKS = 3
-CURATED_CARD_EXTERNAL_LINKS = 57
+CURATED_CARD_EXTERNAL_LINKS = 112
 CURATED_CARD_EXTERNAL_LINK_DELTA = -3
 CURATED_FOUNDATION_REFERENCE_FILES = 1
-CURATED_FOUNDATION_FILES_TOTAL = 3
+CURATED_FOUNDATION_FILES_TOTAL = 5
+CURATED_LESSON_REFERENCE_FILES = 1
+CURATED_LESSON_FILES_TOTAL = 5
 SEMANTIC_HEADINGS = {
     "upright": re.compile(r"^#{2,6}\s+.*正位", re.MULTILINE),
     "reversed": re.compile(r"^#{2,6}\s+.*逆位", re.MULTILINE),
@@ -113,12 +117,15 @@ class Validation:
             "cards_major_arcana": 0,
             "cards_wands": 0,
             "cards_cups": 0,
+            "cards_swords": 0,
+            "cards_pentacles": 0,
             "combination_files": 0,
             "directional_combination_rows": 0,
             "undirected_major_pairs": 0,
             "card_body_external_links": 0,
             "combination_external_links": 0,
             "foundation_files": 0,
+            "lesson_source_files": 0,
         }
 
     def error(self, location: str | Path, message: str) -> None:
@@ -475,6 +482,8 @@ def validate_foundations(validation: Validation) -> None:
     expected_sources = {
         directory / "tarot-structure-source.md": "src-major-00-05",
         directory / "minor-arcana-wands-source.md": "src-wands-01-14",
+        directory / "minor-arcana-pentacles-source.md": "src-pentacles-01-14",
+        directory / "tarot-reading-basics-source.md": "src-supplemental-guides",
     }
     expected_references = {directory / "correspondence-policy.md"}
     actual = {Path(path) for path in actual_content_paths(directory)}
@@ -542,6 +551,69 @@ def validate_foundations(validation: Validation) -> None:
         check_single_h1(validation, path, body)
 
 
+def validate_lessons(validation: Validation) -> None:
+    directory = validation.root / "lessons"
+    expected_sources = {
+        directory / "reversed-cards-source.md": "src-supplemental-guides",
+        directory / "question-formulation-source.md": "src-supplemental-guides",
+        directory / "major-arcana-life-guide-source.md": "src-supplemental-guides",
+        directory / "first-reading-source.md": "src-supplemental-guides",
+    }
+    expected_references = {directory / "learning-path.md"}
+    actual = {Path(path) for path in actual_content_paths(directory)}
+    actual_sources = {path for path in actual if path.name.endswith("-source.md")}
+    actual_references = actual - actual_sources
+    validation.counts["lesson_source_files"] = len(actual_sources)
+    validation.counts["lesson_reference_files"] = len(actual_references)
+    validation.counts["lesson_files_total"] = len(actual)
+    compare_path_sets(
+        validation,
+        "lessons imported sources",
+        (str(path) for path in actual_sources),
+        (str(path) for path in expected_sources),
+    )
+    compare_path_sets(
+        validation,
+        "lessons authored references",
+        (str(path) for path in actual_references),
+        (str(path) for path in expected_references),
+    )
+    validation.expect(
+        len(actual_sources) == IMPORTED_LESSON_SOURCE_FILES,
+        "lessons",
+        f"expected {IMPORTED_LESSON_SOURCE_FILES} imported lesson files, found {len(actual_sources)}",
+    )
+    validation.expect(
+        len(actual_references) == CURATED_LESSON_REFERENCE_FILES,
+        "lessons",
+        f"expected {CURATED_LESSON_REFERENCE_FILES} authored lesson file, found {len(actual_references)}",
+    )
+    validation.expect(
+        len(actual) == CURATED_LESSON_FILES_TOTAL,
+        "lessons",
+        f"expected {CURATED_LESSON_FILES_TOTAL} total lesson files, found {len(actual)}",
+    )
+    for path, source_id in expected_sources.items():
+        if not path.is_file():
+            continue
+        parsed = read_markdown(validation, path)
+        if parsed is None:
+            continue
+        metadata, body = parsed
+        check_key_set(validation, path, metadata, FOUNDATION_FRONTMATTER_KEYS)
+        validation.expect(metadata.get("schema_version") == 1, path, "schema_version must equal 1")
+        validation.expect(metadata.get("source_ids") == [source_id], path, f"source_ids must equal {[source_id]!r}")
+        check_review_fields(validation, path, metadata)
+        check_single_h1(validation, path, body)
+    for path in expected_references:
+        try:
+            body = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as exc:
+            validation.error(path, f"cannot read authored lesson: {exc}")
+            continue
+        check_single_h1(validation, path, body)
+
+
 def expect_report_value(
     validation: Validation,
     report: dict[str, Any],
@@ -575,6 +647,8 @@ def validate_import_report(validation: Validation) -> None:
         ("cards", "major_arcana"): validation.counts["cards_major_arcana"],
         ("cards", "wands"): validation.counts["cards_wands"],
         ("cards", "cups"): validation.counts["cards_cups"],
+        ("cards", "swords"): validation.counts["cards_swords"],
+        ("cards", "pentacles"): validation.counts["cards_pentacles"],
         ("combination_files",): validation.counts["combination_files"],
         ("directional_combination_rows",): validation.counts["directional_combination_rows"],
         ("undirected_major_pairs",): validation.counts["undirected_major_pairs"],
@@ -582,6 +656,8 @@ def validate_import_report(validation: Validation) -> None:
         # overrides may later remove a bad source link or add an authored
         # foundation without rewriting that provenance report.
         ("foundation_files",): IMPORTED_FOUNDATION_FILES,
+        ("lesson_source_files",): IMPORTED_LESSON_SOURCE_FILES,
+        ("source_material_files",): IMPORTED_SOURCE_MATERIAL_FILES,
         ("source_hyperlinks_detected",): SOURCE_HYPERLINKS_DETECTED,
         ("hyperlinks_excluded",): EXCLUDED_SOURCE_HYPERLINKS,
         ("hyperlinks_preserved",): IMPORTED_EXTERNAL_LINKS_TOTAL,
@@ -608,15 +684,19 @@ def compare_path_sets(
 
 def validate_repository(root: Path) -> Validation:
     validation = Validation(root)
-    cards = tuple(MAJORS) + tuple(WANDS) + tuple(CUPS)
+    cards = tuple(MAJORS) + tuple(WANDS) + tuple(CUPS) + tuple(SWORDS) + tuple(PENTACLES)
 
     major_numbers = {card.number for card in MAJORS}
     wand_numbers = {card.number for card in WANDS}
     cup_numbers = {card.number for card in CUPS}
+    sword_numbers = {card.number for card in SWORDS}
+    pentacle_numbers = {card.number for card in PENTACLES}
     validation.expect(major_numbers == set(range(22)), "card registry", "Major Arcana numbers must be exactly 0 through 21")
     validation.expect(22 not in major_numbers, "card registry", "RWS Major Arcana must not contain card number 22")
     validation.expect(wand_numbers == set(range(1, 15)), "card registry", "Wands numbers must be exactly 1 through 14")
     validation.expect(cup_numbers == set(range(1, 15)), "card registry", "Cups numbers must be exactly 1 through 14")
+    validation.expect(sword_numbers == set(range(1, 15)), "card registry", "Swords numbers must be exactly 1 through 14")
+    validation.expect(pentacle_numbers == set(range(1, 15)), "card registry", "Pentacles numbers must be exactly 1 through 14")
     major_by_english_name = {card.name_en: card.number for card in MAJORS}
     for name, number in RWS_MAJOR_NUMBERS.items():
         validation.expect(major_by_english_name.get(name) == number, "card registry", f"RWS numbering requires {name} at {number}")
@@ -635,10 +715,18 @@ def validate_repository(root: Path) -> Validation:
     validation.counts["cards_cups"] = len(
         actual_content_paths(root / "knowledge/cards/minor-arcana/cups")
     )
-    validation.expect(validation.counts["cards_total"] == 50, "knowledge/cards", f"expected 50 card files, found {validation.counts['cards_total']}")
+    validation.counts["cards_swords"] = len(
+        actual_content_paths(root / "knowledge/cards/minor-arcana/swords")
+    )
+    validation.counts["cards_pentacles"] = len(
+        actual_content_paths(root / "knowledge/cards/minor-arcana/pentacles")
+    )
+    validation.expect(validation.counts["cards_total"] == 78, "knowledge/cards", f"expected 78 card files, found {validation.counts['cards_total']}")
     validation.expect(validation.counts["cards_major_arcana"] == 22, "knowledge/cards/major-arcana", f"expected 22 Major Arcana files, found {validation.counts['cards_major_arcana']}")
     validation.expect(validation.counts["cards_wands"] == 14, "knowledge/cards/minor-arcana/wands", f"expected 14 Wands files, found {validation.counts['cards_wands']}")
     validation.expect(validation.counts["cards_cups"] == 14, "knowledge/cards/minor-arcana/cups", f"expected 14 Cups files, found {validation.counts['cards_cups']}")
+    validation.expect(validation.counts["cards_swords"] == 14, "knowledge/cards/minor-arcana/swords", f"expected 14 Swords files, found {validation.counts['cards_swords']}")
+    validation.expect(validation.counts["cards_pentacles"] == 14, "knowledge/cards/minor-arcana/pentacles", f"expected 14 Pentacles files, found {validation.counts['cards_pentacles']}")
 
     card_links = 0
     for card in cards:
@@ -694,6 +782,7 @@ def validate_repository(root: Path) -> Validation:
     )
 
     validate_foundations(validation)
+    validate_lessons(validation)
     validate_import_report(validation)
     return validation
 

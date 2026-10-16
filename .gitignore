@@ -18,6 +18,7 @@ knowledge/cards/**/*.md
 !knowledge/cards/**/README.md
 knowledge/combinations/major-arcana/
 knowledge/foundations/*-source.md
+lessons/*-source.md
 catalog/card-index.json
 catalog/coverage.json
 qa/import-report.json

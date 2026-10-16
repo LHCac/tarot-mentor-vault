@@ -53,3 +53,45 @@ sources:
     rights_status: unknown
     publish: false
     notes: "原稿含 3 個網站導覽／訂閱連結，匯入時排除正文並於本機來源審核表保留。內容與外部網站高度相似，公開前需確認作者身分與授權。"
+
+  - id: src-swords-01-14
+    title: "寶劍 1–14 本機原稿"
+    local_filename: "寶劍系列.docx"
+    media_type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+    sha256: "12fb069d7a5ac5bc12abde46283f4727acf387aa77e1f0370c88c58575481f0d"
+    coverage:
+      arcana: minor
+      suit: swords
+      number_from: 1
+      number_to: 14
+      expected_card_count: 14
+    rights_status: unknown
+    publish: false
+    notes: "含第三方參考連結；牌義文字與連結先保留於本機草稿，公開前需逐張確認來源與授權。"
+
+  - id: src-pentacles-01-14
+    title: "錢幣 1–14 本機原稿"
+    local_filename: "錢幣牌組.docx"
+    media_type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+    sha256: "43d97111232fad8ab84f17c0719ea1506a7999d91881e671c45c5a71b0749e2a"
+    coverage:
+      arcana: minor
+      suit: pentacles
+      number_from: 1
+      number_to: 14
+      expected_card_count: 14
+    rights_status: unknown
+    publish: false
+    notes: "含第三方參考連結；牌義文字與連結先保留於本機草稿，公開前需逐張確認來源與授權。"
+
+  - id: src-supplemental-guides
+    title: "塔羅教學補充資料本機原稿"
+    local_filename: "補充資料.docx"
+    media_type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+    sha256: "e3c5d48ce3b6182b0266d06544ab3e0351271ed49f991bd90f8875908396d421"
+    coverage:
+      scope: supplemental-guides
+      topics: [reading-basics, reversed-cards, question-formulation, major-arcana-life-guide, first-reading]
+    rights_status: unknown
+    publish: false
+    notes: "內容含 JASIYU 連結與兩張示意圖；文字拆為五個本機教學單元，圖像只保留在原始 DOCX。公開前需確認作者身分、圖片權利與授權。"

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Import the four reviewed Pages-to-DOCX exports into local Markdown.
+"""Import the seven reviewed Pages-to-DOCX exports into local Markdown.
 
 The importer is intentionally strict.  It validates the exact reviewed DOCX
 exports, card boundaries, card order, directional combination tables, and
@@ -156,6 +156,72 @@ CUPS: tuple[CardSpec, ...] = tuple(
     for number, rank, name_zh, name_en, slug in CUP_DATA
 )
 
+SWORD_DATA = (
+    (1, "ace", "寶劍王牌", "Ace of Swords", "ace-of-swords"),
+    (2, "two", "寶劍二", "Two of Swords", "two-of-swords"),
+    (3, "three", "寶劍三", "Three of Swords", "three-of-swords"),
+    (4, "four", "寶劍四", "Four of Swords", "four-of-swords"),
+    (5, "five", "寶劍五", "Five of Swords", "five-of-swords"),
+    (6, "six", "寶劍六", "Six of Swords", "six-of-swords"),
+    (7, "seven", "寶劍七", "Seven of Swords", "seven-of-swords"),
+    (8, "eight", "寶劍八", "Eight of Swords", "eight-of-swords"),
+    (9, "nine", "寶劍九", "Nine of Swords", "nine-of-swords"),
+    (10, "ten", "寶劍十", "Ten of Swords", "ten-of-swords"),
+    (11, "page", "寶劍侍者", "Page of Swords", "page-of-swords"),
+    (12, "knight", "寶劍騎士", "Knight of Swords", "knight-of-swords"),
+    (13, "queen", "寶劍皇后", "Queen of Swords", "queen-of-swords"),
+    (14, "king", "寶劍國王", "King of Swords", "king-of-swords"),
+)
+
+SWORDS: tuple[CardSpec, ...] = tuple(
+    CardSpec(
+        id=f"minor-swords-{number:02d}-{slug}",
+        path=f"knowledge/cards/minor-arcana/swords/{number:02d}-{slug}.md",
+        arcana="minor",
+        suit="swords",
+        number=number,
+        rank=rank,
+        name_zh=name_zh,
+        name_en=name_en,
+        slug=slug,
+        source_id="src-swords-01-14",
+    )
+    for number, rank, name_zh, name_en, slug in SWORD_DATA
+)
+
+PENTACLE_DATA = (
+    (1, "ace", "錢幣王牌", "Ace of Pentacles", "ace-of-pentacles"),
+    (2, "two", "錢幣二", "Two of Pentacles", "two-of-pentacles"),
+    (3, "three", "錢幣三", "Three of Pentacles", "three-of-pentacles"),
+    (4, "four", "錢幣四", "Four of Pentacles", "four-of-pentacles"),
+    (5, "five", "錢幣五", "Five of Pentacles", "five-of-pentacles"),
+    (6, "six", "錢幣六", "Six of Pentacles", "six-of-pentacles"),
+    (7, "seven", "錢幣七", "Seven of Pentacles", "seven-of-pentacles"),
+    (8, "eight", "錢幣八", "Eight of Pentacles", "eight-of-pentacles"),
+    (9, "nine", "錢幣九", "Nine of Pentacles", "nine-of-pentacles"),
+    (10, "ten", "錢幣十", "Ten of Pentacles", "ten-of-pentacles"),
+    (11, "page", "錢幣侍者", "Page of Pentacles", "page-of-pentacles"),
+    (12, "knight", "錢幣騎士", "Knight of Pentacles", "knight-of-pentacles"),
+    (13, "queen", "錢幣皇后", "Queen of Pentacles", "queen-of-pentacles"),
+    (14, "king", "錢幣國王", "King of Pentacles", "king-of-pentacles"),
+)
+
+PENTACLES: tuple[CardSpec, ...] = tuple(
+    CardSpec(
+        id=f"minor-pentacles-{number:02d}-{slug}",
+        path=f"knowledge/cards/minor-arcana/pentacles/{number:02d}-{slug}.md",
+        arcana="minor",
+        suit="pentacles",
+        number=number,
+        rank=rank,
+        name_zh=name_zh,
+        name_en=name_en,
+        slug=slug,
+        source_id="src-pentacles-01-14",
+    )
+    for number, rank, name_zh, name_en, slug in PENTACLE_DATA
+)
+
 MAJOR_BY_NUMBER = {card.number: card for card in MAJORS}
 
 
@@ -206,6 +272,33 @@ INPUT_SPECS = {
         nonempty_paragraph_count=2033,
         table_count=0,
         cards=CUPS,
+    ),
+    "swords_01_14": InputSpec(
+        key="swords_01_14",
+        source_id="src-swords-01-14",
+        sha256="12fb069d7a5ac5bc12abde46283f4727acf387aa77e1f0370c88c58575481f0d",
+        paragraph_count=2170,
+        nonempty_paragraph_count=1860,
+        table_count=0,
+        cards=SWORDS,
+    ),
+    "pentacles_01_14": InputSpec(
+        key="pentacles_01_14",
+        source_id="src-pentacles-01-14",
+        sha256="43d97111232fad8ab84f17c0719ea1506a7999d91881e671c45c5a71b0749e2a",
+        paragraph_count=2173,
+        nonempty_paragraph_count=1848,
+        table_count=0,
+        cards=PENTACLES,
+    ),
+    "supplemental_guides": InputSpec(
+        key="supplemental_guides",
+        source_id="src-supplemental-guides",
+        sha256="e3c5d48ce3b6182b0266d06544ab3e0351271ed49f991bd90f8875908396d421",
+        paragraph_count=232,
+        nonempty_paragraph_count=203,
+        table_count=1,
+        cards=(),
     ),
 }
 
@@ -646,6 +739,8 @@ def split_document(document: Document) -> tuple[tuple[Block, ...], list[tuple[Ca
                 f"{largest_candidates}"
             )
         positions.append(largest_candidates[0])
+    if not positions:
+        return document.blocks, []
     if positions != sorted(positions) or len(set(positions)) != len(positions):
         raise ValueError(f"{document.path.name}: card starts are out of order")
     spans: list[tuple[CardSpec, tuple[Block, ...]]] = []
@@ -832,7 +927,7 @@ def render_paragraph(
     )
     if not foundation and explicit_main_section:
         return f"## {plain}"
-    if card is not None and card.suit == "cups":
+    if card is not None and card.suit in {"cups", "swords", "pentacles"}:
         if paragraph.max_size == 51:
             return f"## {plain}"
         if paragraph.max_size == 42:
@@ -1060,6 +1155,106 @@ def render_foundation(
     return "\n".join(output) + "\n"
 
 
+def render_generic_table(table: Table) -> str:
+    if not table.rows:
+        raise ValueError("Supplemental guide contains an empty table")
+    width = len(table.rows[0])
+    if width == 0 or any(len(row) != width for row in table.rows):
+        raise ValueError("Supplemental guide table has inconsistent row widths")
+    rows: list[str] = []
+    for row_index, row in enumerate(table.rows):
+        cells = [escape_table_cell(cell.markdown) for cell in row]
+        rows.append("| " + " | ".join(cells) + " |")
+        if row_index == 0:
+            rows.append("|" + "|".join("---" for _ in cells) + "|")
+    return "\n".join(rows)
+
+
+def render_source_paragraph(paragraph: Paragraph) -> str:
+    if not paragraph.plain:
+        return ""
+    if paragraph.bullet:
+        return f"- {paragraph.markdown.replace(chr(10), chr(10) + '  ')}"
+    if paragraph.max_size in {51, 57}:
+        return f"## {paragraph.plain}"
+    if paragraph.max_size in {30, 32, 36, 42}:
+        return f"### {paragraph.plain}"
+    if paragraph.max_size in {21, 27} and re.match(r"^(Q\d|學習順序)", paragraph.plain):
+        return f"#### {paragraph.plain}"
+    return paragraph.markdown
+
+
+def render_source_guide(
+    title: str,
+    source_id: str,
+    blocks: Sequence[Block],
+    warnings: Sequence[str] = (),
+) -> str:
+    output = [
+        "---",
+        "schema_version: 1",
+        f"source_ids: {yaml_value([source_id])}",
+        'review_status: "draft"',
+        "last_reviewed: null",
+        "---",
+        "",
+        f"# {title}",
+        "",
+        f"> 本檔由 `{source_id}` 匯入，尚待人工校對；來源權利未確認，僅供本機整理。",
+    ]
+    for warning in warnings:
+        append_block(output, f"> TODO：{warning}")
+    for block in blocks:
+        if block.kind == "section":
+            continue
+        if block.kind == "table":
+            assert isinstance(block.value, Table)
+            append_block(output, render_generic_table(block.value))
+            continue
+        paragraph = block.value
+        assert isinstance(paragraph, Paragraph)
+        if is_separator(paragraph.plain):
+            continue
+        append_block(output, render_source_paragraph(paragraph))
+    while output and output[-1] == "":
+        output.pop()
+    return "\n".join(output) + "\n"
+
+
+def split_supplemental_guides(blocks: Sequence[Block]) -> dict[str, tuple[Block, ...]]:
+    anchors = {
+        "basics": "查塔羅牌牌義前，先掌握 3 個重點",
+        "reversed": "塔羅牌解牌時，你可能會遇到一種狀況",
+        "questions": "塔羅牌怎麼問問題？ 5種常見問法與修改建議",
+        "major_life": "塔羅牌的 78 張牌中，大阿爾克那",
+        "first_reading": "第一次抽塔羅，腦中常有很多問號",
+    }
+    positions: dict[str, int] = {}
+    for key, prefix in anchors.items():
+        matches = [
+            index
+            for index, block in enumerate(blocks)
+            if block.kind == "paragraph"
+            and isinstance(block.value, Paragraph)
+            and block.value.plain.startswith(prefix)
+        ]
+        if len(matches) != 1:
+            raise ValueError(
+                f"Supplemental guide anchor {key!r} expected once, got {matches}"
+            )
+        positions[key] = matches[0]
+    order = ["basics", "reversed", "questions", "major_life", "first_reading"]
+    ordered_positions = [positions[key] for key in order]
+    if ordered_positions != sorted(ordered_positions):
+        raise ValueError("Supplemental guide anchors are out of order")
+    result: dict[str, tuple[Block, ...]] = {}
+    for index, key in enumerate(order):
+        start = positions[key]
+        end = positions[order[index + 1]] if index + 1 < len(order) else len(blocks)
+        result[key] = tuple(blocks[start:end])
+    return result
+
+
 def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[str, object]]:
     outputs: dict[str, str] = {}
     combination_edges: set[tuple[int, int]] = set()
@@ -1111,17 +1306,51 @@ def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[s
         blocks=preambles["wands_01_14"],
         warnings=("第二段停在「帶回生活的指」，疑似原稿已截斷；需回原稿人工補字。",),
     )
+    outputs["knowledge/foundations/minor-arcana-pentacles-source.md"] = render_foundation(
+        title="錢幣牌組概覽（原稿前言）",
+        source_id="src-pentacles-01-14",
+        blocks=preambles["pentacles_01_14"],
+        warnings=(),
+    )
+
+    supplemental = split_supplemental_guides(preambles["supplemental_guides"])
+    outputs["knowledge/foundations/tarot-reading-basics-source.md"] = render_source_guide(
+        title="塔羅牌分類、元素與基礎解讀順序（補充原稿）",
+        source_id="src-supplemental-guides",
+        blocks=supplemental["basics"],
+    )
+    outputs["lessons/reversed-cards-source.md"] = render_source_guide(
+        title="逆位入門與練習（補充原稿）",
+        source_id="src-supplemental-guides",
+        blocks=supplemental["reversed"],
+        warnings=("原始 DOCX 的兩張愚者正逆位示意圖未匯入文字索引；圖像仍保留於來源檔。",),
+    )
+    outputs["lessons/question-formulation-source.md"] = render_source_guide(
+        title="塔羅提問方式與修改練習（補充原稿）",
+        source_id="src-supplemental-guides",
+        blocks=supplemental["questions"],
+    )
+    outputs["lessons/major-arcana-life-guide-source.md"] = render_source_guide(
+        title="大秘儀生活對照指南（補充原稿）",
+        source_id="src-supplemental-guides",
+        blocks=supplemental["major_life"],
+    )
+    outputs["lessons/first-reading-source.md"] = render_source_guide(
+        title="第一次抽牌的五個提醒（補充原稿）",
+        source_id="src-supplemental-guides",
+        blocks=supplemental["first_reading"],
+    )
 
     source_links_total = sum(document.link_count for document in documents)
-    if source_links_total != 525:
-        raise ValueError(f"Expected 525 source hyperlinks, got {source_links_total}")
+    if source_links_total != 605:
+        raise ValueError(f"Expected 605 source hyperlinks, got {source_links_total}")
     if excluded_hyperlinks != 3:
         raise ValueError(f"Expected 3 excluded hyperlinks, got {excluded_hyperlinks}")
     preserved_links_total = source_links_total - excluded_hyperlinks
-    if preserved_links_total != 522:
-        raise ValueError(f"Expected 522 preserved hyperlinks, got {preserved_links_total}")
-    if card_count != 50:
-        raise ValueError(f"Expected 50 cards, got {card_count}")
+    if preserved_links_total != 602:
+        raise ValueError(f"Expected 602 preserved hyperlinks, got {preserved_links_total}")
+    if card_count != 78:
+        raise ValueError(f"Expected 78 cards, got {card_count}")
     combo_file_count = sum(path.startswith("knowledge/combinations/major-arcana/") for path in outputs)
     if combo_file_count != 22:
         raise ValueError(f"Expected 22 combination files, got {combo_file_count}")
@@ -1131,15 +1360,19 @@ def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[s
         "publish_allowed": False,
         "rights_status": "unknown",
         "cards": {
-            "total": 50,
+            "total": 78,
             "major_arcana": 22,
             "wands": 14,
             "cups": 14,
+            "swords": 14,
+            "pentacles": 14,
         },
         "combination_files": 22,
         "directional_combination_rows": len(combination_edges),
         "undirected_major_pairs": 231,
-        "foundation_files": 2,
+        "foundation_files": 4,
+        "lesson_source_files": 4,
+        "source_material_files": 8,
         "source_hyperlinks_detected": source_links_total,
         "hyperlinks_excluded": excluded_hyperlinks,
         "hyperlinks_preserved": preserved_links_total,
@@ -1158,13 +1391,15 @@ def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[s
             "權杖前言第二段疑似截斷，結尾為「帶回生活的指」。",
             "大秘儀前言的「廷牌」可能應為「宮廷牌」。",
             "聖杯侍者牌尾的導覽與付費推廣共 3 段已排除，其中含 3 個超連結。",
+            "補充資料中的 2 張愚者正逆位示意圖保留於原始 DOCX，未放入文字索引。",
+            "寶劍王牌使用「學習重點」而非日期欄位，因此 timing 保留為 null。",
             "所有匯入內容 review_status 均為 draft，尚待逐張人工校對。",
             "來源權利狀態仍為 unknown，不得推送牌義全文到公開 GitHub。",
         ],
     }
     outputs["qa/import-report.json"] = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
-    if len(outputs) != 75:
-        raise ValueError(f"Expected 75 output files, got {len(outputs)}")
+    if len(outputs) != 109:
+        raise ValueError(f"Expected 109 output files, got {len(outputs)}")
     return outputs, report
 
 
@@ -1202,6 +1437,9 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser.add_argument("--major-06-21", type=Path, required=True)
     parser.add_argument("--wands-01-14", type=Path, required=True)
     parser.add_argument("--cups-01-14", type=Path, required=True)
+    parser.add_argument("--swords-01-14", type=Path, required=True)
+    parser.add_argument("--pentacles-01-14", type=Path, required=True)
+    parser.add_argument("--supplemental-guides", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, default=Path.cwd())
     parser.add_argument(
         "--write",
@@ -1223,11 +1461,22 @@ def main(argv: Sequence[str] | None = None) -> int:
         "major_06_21": args.major_06_21,
         "wands_01_14": args.wands_01_14,
         "cups_01_14": args.cups_01_14,
+        "swords_01_14": args.swords_01_14,
+        "pentacles_01_14": args.pentacles_01_14,
+        "supplemental_guides": args.supplemental_guides,
     }
     try:
         documents = [
             parse_document(paths[key], INPUT_SPECS[key], args.allow_changed_input)
-            for key in ("major_00_05", "major_06_21", "wands_01_14", "cups_01_14")
+            for key in (
+                "major_00_05",
+                "major_06_21",
+                "wands_01_14",
+                "cups_01_14",
+                "swords_01_14",
+                "pentacles_01_14",
+                "supplemental_guides",
+            )
         ]
         outputs, report = build_outputs(documents)
         if args.write:
