@@ -60,20 +60,20 @@ FOUNDATION_FRONTMATTER_KEYS = {
     "last_reviewed",
 }
 CORRESPONDENCE_KEYS = {"element", "planet", "zodiac", "timing"}
-IMPORTED_FOUNDATION_FILES = 4
-IMPORTED_LESSON_SOURCE_FILES = 4
-IMPORTED_SOURCE_MATERIAL_FILES = 8
+IMPORTED_FOUNDATION_FILES = 7
+IMPORTED_LESSON_SOURCE_FILES = 10
+IMPORTED_SOURCE_MATERIAL_FILES = 17
 IMPORTED_CARD_EXTERNAL_LINKS = 115
 IMPORTED_COMBINATION_EXTERNAL_LINKS = 462
-IMPORTED_EXTERNAL_LINKS_TOTAL = 602
-SOURCE_HYPERLINKS_DETECTED = 605
-EXCLUDED_SOURCE_HYPERLINKS = 3
+IMPORTED_EXTERNAL_LINKS_TOTAL = 644
+SOURCE_HYPERLINKS_DETECTED = 648
+EXCLUDED_SOURCE_HYPERLINKS = 4
 CURATED_CARD_EXTERNAL_LINKS = 112
 CURATED_CARD_EXTERNAL_LINK_DELTA = -3
 CURATED_FOUNDATION_REFERENCE_FILES = 1
-CURATED_FOUNDATION_FILES_TOTAL = 5
+CURATED_FOUNDATION_FILES_TOTAL = 8
 CURATED_LESSON_REFERENCE_FILES = 1
-CURATED_LESSON_FILES_TOTAL = 5
+CURATED_LESSON_FILES_TOTAL = 11
 SEMANTIC_HEADINGS = {
     "upright": re.compile(r"^#{2,6}\s+.*正位", re.MULTILINE),
     "reversed": re.compile(r"^#{2,6}\s+.*逆位", re.MULTILINE),
@@ -484,6 +484,9 @@ def validate_foundations(validation: Validation) -> None:
         directory / "minor-arcana-wands-source.md": "src-wands-01-14",
         directory / "minor-arcana-pentacles-source.md": "src-pentacles-01-14",
         directory / "tarot-reading-basics-source.md": "src-supplemental-guides",
+        directory / "minor-arcana-numerology-source.md": "src-advanced-interpretation",
+        directory / "court-card-reading-method-source.md": "src-advanced-interpretation",
+        directory / "court-card-profiles-source.md": "src-advanced-interpretation",
     }
     expected_references = {directory / "correspondence-policy.md"}
     actual = {Path(path) for path in actual_content_paths(directory)}
@@ -558,6 +561,12 @@ def validate_lessons(validation: Validation) -> None:
         directory / "question-formulation-source.md": "src-supplemental-guides",
         directory / "major-arcana-life-guide-source.md": "src-supplemental-guides",
         directory / "first-reading-source.md": "src-supplemental-guides",
+        directory / "advanced-reading-roadmap-source.md": "src-advanced-interpretation",
+        directory / "reversed-cards-foundations-source.md": "src-advanced-interpretation",
+        directory / "reversed-cards-advanced-source.md": "src-advanced-interpretation",
+        directory / "reversed-cards-quick-reference-source.md": "src-advanced-interpretation",
+        directory / "timing-methods-source.md": "src-advanced-interpretation",
+        directory / "time-flow-reading-source.md": "src-advanced-interpretation",
     }
     expected_references = {directory / "learning-path.md"}
     actual = {Path(path) for path in actual_content_paths(directory)}
@@ -658,6 +667,9 @@ def validate_import_report(validation: Validation) -> None:
         ("foundation_files",): IMPORTED_FOUNDATION_FILES,
         ("lesson_source_files",): IMPORTED_LESSON_SOURCE_FILES,
         ("source_material_files",): IMPORTED_SOURCE_MATERIAL_FILES,
+        ("advanced_guide_units",): 9,
+        ("advanced_guide_embedded_images",): 62,
+        ("advanced_guide_remote_media_fields",): 62,
         ("source_hyperlinks_detected",): SOURCE_HYPERLINKS_DETECTED,
         ("hyperlinks_excluded",): EXCLUDED_SOURCE_HYPERLINKS,
         ("hyperlinks_preserved",): IMPORTED_EXTERNAL_LINKS_TOTAL,

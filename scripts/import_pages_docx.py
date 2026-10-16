@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Import the seven reviewed Pages-to-DOCX exports into local Markdown.
+"""Import the eight reviewed Pages-to-DOCX exports into local Markdown.
 
 The importer is intentionally strict.  It validates the exact reviewed DOCX
 exports, card boundaries, card order, directional combination tables, and
@@ -298,6 +298,15 @@ INPUT_SPECS = {
         paragraph_count=232,
         nonempty_paragraph_count=203,
         table_count=1,
+        cards=(),
+    ),
+    "advanced_guides": InputSpec(
+        key="advanced_guides",
+        source_id="src-advanced-interpretation",
+        sha256="60b7428e1e2787f653172cd1f8605b52722c76bdd2399d5a1289aefbd8d28f84",
+        paragraph_count=535,
+        nonempty_paragraph_count=483,
+        table_count=6,
         cards=(),
     ),
 }
@@ -1175,7 +1184,7 @@ def render_source_paragraph(paragraph: Paragraph) -> str:
         return ""
     if paragraph.bullet:
         return f"- {paragraph.markdown.replace(chr(10), chr(10) + '  ')}"
-    if paragraph.max_size in {51, 57}:
+    if paragraph.max_size in {48, 51, 57}:
         return f"## {paragraph.plain}"
     if paragraph.max_size in {30, 32, 36, 42}:
         return f"### {paragraph.plain}"
@@ -1253,6 +1262,92 @@ def split_supplemental_guides(blocks: Sequence[Block]) -> dict[str, tuple[Block,
         end = positions[order[index + 1]] if index + 1 < len(order) else len(blocks)
         result[key] = tuple(blocks[start:end])
     return result
+
+
+def split_advanced_guides(blocks: Sequence[Block]) -> dict[str, tuple[Block, ...]]:
+    anchors = {
+        "roadmap": "塔羅牌進階解讀教學總整理",
+        "numerology": "小阿爾克那數字意義解析",
+        "court_method": "在塔羅牌的 78 張卡片中，16 張宮廷卡",
+        "court_profiles": "塔羅中的宮廷牌總共有 16 張",
+        "reversed_foundations": "有些人很怕逆位",
+        "reversed_advanced": "塔羅逆位代表什麼？先回到正位核心",
+        "reversed_quick": "塔羅牌逆位怎麼讀？先用三步驟判斷",
+        "timing_methods": "在塔羅占卜中，「什麼時候？」",
+        "time_flow": "塔羅時間流解讀不是單純",
+    }
+    positions: dict[str, int] = {}
+    for key, prefix in anchors.items():
+        matches = [
+            index
+            for index, block in enumerate(blocks)
+            if block.kind == "paragraph"
+            and isinstance(block.value, Paragraph)
+            and block.value.plain.startswith(prefix)
+        ]
+        if len(matches) != 1:
+            raise ValueError(
+                f"Advanced guide anchor {key!r} expected once, got {matches}"
+            )
+        positions[key] = matches[0]
+    order = [
+        "roadmap",
+        "numerology",
+        "court_method",
+        "court_profiles",
+        "reversed_foundations",
+        "reversed_advanced",
+        "reversed_quick",
+        "timing_methods",
+        "time_flow",
+    ]
+    ordered_positions = [positions[key] for key in order]
+    if ordered_positions != sorted(ordered_positions):
+        raise ValueError("Advanced guide anchors are out of order")
+    result: dict[str, tuple[Block, ...]] = {}
+    for index, key in enumerate(order):
+        start = positions[key]
+        end = positions[order[index + 1]] if index + 1 < len(order) else len(blocks)
+        result[key] = tuple(blocks[start:end])
+    return result
+
+
+def remove_advanced_court_promotion(
+    blocks: Sequence[Block],
+) -> tuple[tuple[Block, ...], int]:
+    start_matches = [
+        index
+        for index, block in enumerate(blocks)
+        if block.kind == "paragraph"
+        and isinstance(block.value, Paragraph)
+        and block.value.plain.startswith("推薦閱讀｜想深入理解宮廷牌")
+    ]
+    end_matches = [
+        index
+        for index, block in enumerate(blocks)
+        if block.kind == "paragraph"
+        and isinstance(block.value, Paragraph)
+        and block.value.plain.startswith("宮廷卡確實是塔羅牌中最難掌握")
+    ]
+    if len(start_matches) != 1 or len(end_matches) != 1:
+        raise ValueError(
+            "Advanced court promotion boundaries changed: "
+            f"start={start_matches}, end={end_matches}"
+        )
+    start, end = start_matches[0], end_matches[0]
+    if start >= end:
+        raise ValueError("Advanced court promotion boundaries are out of order")
+    excluded = blocks[start:end]
+    excluded_links = sum(
+        len(block.value.links)
+        for block in excluded
+        if block.kind == "paragraph" and isinstance(block.value, Paragraph)
+    )
+    if excluded_links != 1:
+        raise ValueError(
+            f"Expected one excluded advanced court promotional link, got {excluded_links}"
+        )
+    return tuple(blocks[:start]) + tuple(blocks[end:]), excluded_links
 
 
 def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[str, object]]:
@@ -1341,14 +1436,88 @@ def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[s
         blocks=supplemental["first_reading"],
     )
 
+    advanced = split_advanced_guides(preambles["advanced_guides"])
+    advanced_court, advanced_excluded_links = remove_advanced_court_promotion(
+        advanced["court_method"]
+    )
+    excluded_hyperlinks += advanced_excluded_links
+    outputs["lessons/advanced-reading-roadmap-source.md"] = render_source_guide(
+        title="塔羅牌進階解讀學習路線（進階原稿）",
+        source_id="src-advanced-interpretation",
+        blocks=advanced["roadmap"],
+        warnings=("原始 DOCX 的第三方文字與圖像權利未確認，全部單元僅供本機整理。",),
+    )
+    outputs["knowledge/foundations/minor-arcana-numerology-source.md"] = render_source_guide(
+        title="小阿爾克那數字與元素（進階原稿）",
+        source_id="src-advanced-interpretation",
+        blocks=advanced["numerology"],
+        warnings=(
+            "原稿含多處疑似錯字與翻譯不順，尚未人工校訂。",
+            "原始 DOCX 的 40 張小牌示意圖未放入文字索引；圖像仍保留於來源檔。",
+        ),
+    )
+    outputs["knowledge/foundations/court-card-reading-method-source.md"] = render_source_guide(
+        title="宮廷牌角色與解讀方法（進階原稿）",
+        source_id="src-advanced-interpretation",
+        blocks=advanced_court,
+        warnings=(
+            "原始 DOCX 的 4 張宮廷牌示意圖未放入文字索引；圖像仍保留於來源檔。",
+            "一段第三方購物推薦已排除文字索引並保留於本機來源審核表。",
+        ),
+    )
+    outputs["knowledge/foundations/court-card-profiles-source.md"] = render_source_guide(
+        title="十六張宮廷牌人物特質（進階原稿）",
+        source_id="src-advanced-interpretation",
+        blocks=advanced["court_profiles"],
+        warnings=(
+            "原稿的性格、職業與性別描述尚待逐項考證；不可當成固定人物、診斷或招聘判定。",
+            "原始 DOCX 的 16 張宮廷牌圖未放入文字索引；圖像仍保留於來源檔。",
+        ),
+    )
+    outputs["lessons/reversed-cards-foundations-source.md"] = render_source_guide(
+        title="逆位解讀基礎複習（進階原稿）",
+        source_id="src-advanced-interpretation",
+        blocks=advanced["reversed_foundations"],
+        warnings=("內容與既有逆位入門單元部分重疊，先保留原始分段供日後去重。",),
+    )
+    outputs["lessons/reversed-cards-advanced-source.md"] = render_source_guide(
+        title="逆位進階解讀（進階原稿）",
+        source_id="src-advanced-interpretation",
+        blocks=advanced["reversed_advanced"],
+        warnings=(
+            "內容與其他逆位單元部分重疊，需人工整併與去重。",
+            "原始 DOCX 的 2 張正逆位比較圖未放入文字索引；圖像仍保留於來源檔。",
+        ),
+    )
+    outputs["lessons/reversed-cards-quick-reference-source.md"] = render_source_guide(
+        title="逆位三步驟快速參考（進階原稿）",
+        source_id="src-advanced-interpretation",
+        blocks=advanced["reversed_quick"],
+        warnings=("本單元是原稿中的重複快速版，需與完整逆位單元人工整併。",),
+    )
+    outputs["lessons/timing-methods-source.md"] = render_source_guide(
+        title="塔羅計時方法（進階原稿）",
+        source_id="src-advanced-interpretation",
+        blocks=advanced["timing_methods"],
+        warnings=(
+            "牌組、季節、星座與時間單位的對應會因流派而異；不得解讀成確切日期保證。",
+        ),
+    )
+    outputs["lessons/time-flow-reading-source.md"] = render_source_guide(
+        title="三張牌時間流解讀（進階原稿）",
+        source_id="src-advanced-interpretation",
+        blocks=advanced["time_flow"],
+        warnings=("時間流只表示目前條件下的可能路徑，不是固定預言。",),
+    )
+
     source_links_total = sum(document.link_count for document in documents)
-    if source_links_total != 605:
-        raise ValueError(f"Expected 605 source hyperlinks, got {source_links_total}")
-    if excluded_hyperlinks != 3:
-        raise ValueError(f"Expected 3 excluded hyperlinks, got {excluded_hyperlinks}")
+    if source_links_total != 648:
+        raise ValueError(f"Expected 648 source hyperlinks, got {source_links_total}")
+    if excluded_hyperlinks != 4:
+        raise ValueError(f"Expected 4 excluded hyperlinks, got {excluded_hyperlinks}")
     preserved_links_total = source_links_total - excluded_hyperlinks
-    if preserved_links_total != 602:
-        raise ValueError(f"Expected 602 preserved hyperlinks, got {preserved_links_total}")
+    if preserved_links_total != 644:
+        raise ValueError(f"Expected 644 preserved hyperlinks, got {preserved_links_total}")
     if card_count != 78:
         raise ValueError(f"Expected 78 cards, got {card_count}")
     combo_file_count = sum(path.startswith("knowledge/combinations/major-arcana/") for path in outputs)
@@ -1370,9 +1539,12 @@ def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[s
         "combination_files": 22,
         "directional_combination_rows": len(combination_edges),
         "undirected_major_pairs": 231,
-        "foundation_files": 4,
-        "lesson_source_files": 4,
-        "source_material_files": 8,
+        "foundation_files": 7,
+        "lesson_source_files": 10,
+        "source_material_files": 17,
+        "advanced_guide_units": 9,
+        "advanced_guide_embedded_images": 62,
+        "advanced_guide_remote_media_fields": 62,
         "source_hyperlinks_detected": source_links_total,
         "hyperlinks_excluded": excluded_hyperlinks,
         "hyperlinks_preserved": preserved_links_total,
@@ -1392,14 +1564,17 @@ def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[s
             "大秘儀前言的「廷牌」可能應為「宮廷牌」。",
             "聖杯侍者牌尾的導覽與付費推廣共 3 段已排除，其中含 3 個超連結。",
             "補充資料中的 2 張愚者正逆位示意圖保留於原始 DOCX，未放入文字索引。",
+            "進階解讀原稿中的 62 張內嵌圖片保留於原始 DOCX，未放入文字索引。",
+            "進階解讀原稿的一段第三方購物推薦已排除，其中含 1 個超連結。",
+            "進階解讀原稿含疑似錯字、重複內容與待考證對應，九個單元均維持 draft。",
             "寶劍王牌使用「學習重點」而非日期欄位，因此 timing 保留為 null。",
             "所有匯入內容 review_status 均為 draft，尚待逐張人工校對。",
             "來源權利狀態仍為 unknown，不得推送牌義全文到公開 GitHub。",
         ],
     }
     outputs["qa/import-report.json"] = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
-    if len(outputs) != 109:
-        raise ValueError(f"Expected 109 output files, got {len(outputs)}")
+    if len(outputs) != 118:
+        raise ValueError(f"Expected 118 output files, got {len(outputs)}")
     return outputs, report
 
 
@@ -1440,6 +1615,7 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser.add_argument("--swords-01-14", type=Path, required=True)
     parser.add_argument("--pentacles-01-14", type=Path, required=True)
     parser.add_argument("--supplemental-guides", type=Path, required=True)
+    parser.add_argument("--advanced-guides", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, default=Path.cwd())
     parser.add_argument(
         "--write",
@@ -1464,6 +1640,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "swords_01_14": args.swords_01_14,
         "pentacles_01_14": args.pentacles_01_14,
         "supplemental_guides": args.supplemental_guides,
+        "advanced_guides": args.advanced_guides,
     }
     try:
         documents = [
@@ -1476,6 +1653,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "swords_01_14",
                 "pentacles_01_14",
                 "supplemental_guides",
+                "advanced_guides",
             )
         ]
         outputs, report = build_outputs(documents)

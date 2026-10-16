@@ -95,3 +95,16 @@ sources:
     rights_status: unknown
     publish: false
     notes: "內容含 JASIYU 連結與兩張示意圖；文字拆為五個本機教學單元，圖像只保留在原始 DOCX。公開前需確認作者身分、圖片權利與授權。"
+
+  - id: src-advanced-interpretation
+    title: "塔羅牌進階解讀本機原稿"
+    local_filename: "塔羅牌進階解讀.docx"
+    media_type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+    sha256: "60b7428e1e2787f653172cd1f8605b52722c76bdd2399d5a1289aefbd8d28f84"
+    coverage:
+      scope: advanced-interpretation-guides
+      topics: [advanced-roadmap, minor-arcana-numerology, court-card-method, court-card-profiles, reversed-foundations, reversed-advanced, reversed-quick-reference, timing-methods, time-flow-reading]
+      expected_unit_count: 9
+    rights_status: unknown
+    publish: false
+    notes: "原稿含大量 JASIYU 文字、62 張內嵌圖片與 62 個遠端圖片欄位；另有一段第三方購物推薦。正文與圖片只留本機，購物推薦已排除文字索引，公開前需確認作者身分、文字與圖片授權。"
