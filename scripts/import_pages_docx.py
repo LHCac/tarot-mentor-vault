@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Import the eight reviewed Pages-to-DOCX exports into local Markdown.
+"""Import the nine reviewed Pages-to-DOCX exports into local Markdown.
 
 The importer is intentionally strict.  It validates the exact reviewed DOCX
 exports, card boundaries, card order, directional combination tables, and
@@ -307,6 +307,15 @@ INPUT_SPECS = {
         paragraph_count=535,
         nonempty_paragraph_count=483,
         table_count=6,
+        cards=(),
+    ),
+    "repeated_messages_guides": InputSpec(
+        key="repeated_messages_guides",
+        source_id="src-repeated-messages",
+        sha256="e44563bc22a8c800614ec441e3e4febdbc07977b0fc9d53ae1fda80d0c6548ca",
+        paragraph_count=149,
+        nonempty_paragraph_count=127,
+        table_count=0,
         cards=(),
     ),
 }
@@ -1350,6 +1359,77 @@ def remove_advanced_court_promotion(
     return tuple(blocks[:start]) + tuple(blocks[end:]), excluded_links
 
 
+def split_repeated_messages_guides(
+    blocks: Sequence[Block],
+) -> dict[str, tuple[Block, ...]]:
+    anchors = {
+        "recognition": "如何看懂占卜中的重複訊息？",
+        "differences": "如何辨識「重複」中真正的差異？",
+        "integration": "如何整合重複訊息？",
+        "subject_object_foundations": "塔羅主客體解讀指南",
+        "subject_object_evidence": "判斷塔羅內在與外在的三個觀察重點",
+        "subject_object_casework": "單張牌案例：同一張牌如何因牌位改變主客體？",
+        "subject_object_boundaries": "四個常見的塔羅主客體誤讀",
+    }
+    positions: dict[str, int] = {}
+    for key, prefix in anchors.items():
+        matches = [
+            index
+            for index, block in enumerate(blocks)
+            if block.kind == "paragraph"
+            and isinstance(block.value, Paragraph)
+            and block.value.plain.startswith(prefix)
+        ]
+        if len(matches) != 1:
+            raise ValueError(
+                f"Repeated-message guide anchor {key!r} expected once, got {matches}"
+            )
+        positions[key] = matches[0]
+    order = [
+        "recognition",
+        "differences",
+        "integration",
+        "subject_object_foundations",
+        "subject_object_evidence",
+        "subject_object_casework",
+        "subject_object_boundaries",
+    ]
+    ordered_positions = [positions[key] for key in order]
+    if ordered_positions != sorted(ordered_positions):
+        raise ValueError("Repeated-message guide anchors are out of order")
+    result: dict[str, tuple[Block, ...]] = {}
+    for index, key in enumerate(order):
+        start = positions[key]
+        end = positions[order[index + 1]] if index + 1 < len(order) else len(blocks)
+        result[key] = tuple(blocks[start:end])
+    return result
+
+
+def remove_repeated_messages_navigation(
+    blocks: Sequence[Block],
+) -> tuple[tuple[Block, ...], int]:
+    matches = [
+        index
+        for index, block in enumerate(blocks)
+        if block.kind == "paragraph"
+        and isinstance(block.value, Paragraph)
+        and block.value.plain.startswith("陌生塔羅組合三步驟")
+    ]
+    if len(matches) != 1:
+        raise ValueError(
+            f"Repeated-message navigation expected once, got {matches}"
+        )
+    index = matches[0]
+    block = blocks[index]
+    assert isinstance(block.value, Paragraph)
+    excluded_links = len(block.value.links)
+    if excluded_links != 3:
+        raise ValueError(
+            f"Expected three excluded repeated-message navigation links, got {excluded_links}"
+        )
+    return tuple(blocks[:index]) + tuple(blocks[index + 1 :]), excluded_links
+
+
 def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[str, object]]:
     outputs: dict[str, str] = {}
     combination_edges: set[tuple[int, int]] = set()
@@ -1510,14 +1590,82 @@ def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[s
         warnings=("時間流只表示目前條件下的可能路徑，不是固定預言。",),
     )
 
+    repeated = split_repeated_messages_guides(
+        preambles["repeated_messages_guides"]
+    )
+    repeated_boundaries, repeated_excluded_links = remove_repeated_messages_navigation(
+        repeated["subject_object_boundaries"]
+    )
+    excluded_hyperlinks += repeated_excluded_links
+    outputs["lessons/repeated-messages-recognition-source.md"] = render_source_guide(
+        title="重複訊息的辨識與類型（重複訊息原稿）",
+        source_id="src-repeated-messages",
+        blocks=repeated["recognition"],
+        warnings=(
+            "重複只表示在當前解讀框架中值得優先檢查的主題，不構成事件必然發生的證據。",
+            "原始 DOCX 的牌圖與遠端圖片欄位未放入文字索引。",
+        ),
+    )
+    outputs["lessons/repeated-messages-differences-source.md"] = render_source_guide(
+        title="重複訊息中的差異與層次（重複訊息原稿）",
+        source_id="src-repeated-messages",
+        blocks=repeated["differences"],
+        warnings=(
+            "相似牌義仍要依牌位、時間順序與可觀察現實分開判斷。",
+        ),
+    )
+    outputs["lessons/repeated-messages-integration-source.md"] = render_source_guide(
+        title="重複訊息的整合與案例（重複訊息原稿）",
+        source_id="src-repeated-messages",
+        blocks=repeated["integration"],
+        warnings=(
+            "原稿案例含必然性語氣，尚待改寫為有條件的可能路徑。",
+            "補充牌可能強化確認偏誤；使用前應先寫明問題與判準。",
+        ),
+    )
+    outputs["knowledge/foundations/subject-object-environment-source.md"] = render_source_guide(
+        title="塔羅主體客體與環境（主客體原稿）",
+        source_id="src-repeated-messages",
+        blocks=repeated["subject_object_foundations"],
+        warnings=(
+            "主體、客體與環境是解牌焦點，不是固定牌義分類。",
+            "涉及他人時只描述可觀察互動，不以牌面當成讀心證據。",
+        ),
+    )
+    outputs["lessons/subject-object-evidence-source.md"] = render_source_guide(
+        title="主客體判斷證據與五步驟（主客體原稿）",
+        source_id="src-repeated-messages",
+        blocks=repeated["subject_object_evidence"],
+        warnings=(
+            "先以問題與牌位定義角色，再用牌面動作與鄰牌作為可修正的證據。",
+        ),
+    )
+    outputs["lessons/subject-object-casework-source.md"] = render_source_guide(
+        title="主客體單牌與三牌案例（主客體原稿）",
+        source_id="src-repeated-messages",
+        blocks=repeated["subject_object_casework"],
+        warnings=(
+            "案例用來示範推理方式，不代表可由牌面確認他人動機或現實事件。",
+        ),
+    )
+    outputs["lessons/subject-object-boundaries-faq-source.md"] = render_source_guide(
+        title="主客體誤讀界線與常見問題（主客體原稿）",
+        source_id="src-repeated-messages",
+        blocks=repeated_boundaries,
+        warnings=(
+            "原稿尾端的三個相關閱讀導流連結已排除文字索引。",
+            "涉及他人的結論必須保留現實溝通與事實查證空間。",
+        ),
+    )
+
     source_links_total = sum(document.link_count for document in documents)
-    if source_links_total != 648:
-        raise ValueError(f"Expected 648 source hyperlinks, got {source_links_total}")
-    if excluded_hyperlinks != 4:
-        raise ValueError(f"Expected 4 excluded hyperlinks, got {excluded_hyperlinks}")
+    if source_links_total != 667:
+        raise ValueError(f"Expected 667 source hyperlinks, got {source_links_total}")
+    if excluded_hyperlinks != 7:
+        raise ValueError(f"Expected 7 excluded hyperlinks, got {excluded_hyperlinks}")
     preserved_links_total = source_links_total - excluded_hyperlinks
-    if preserved_links_total != 644:
-        raise ValueError(f"Expected 644 preserved hyperlinks, got {preserved_links_total}")
+    if preserved_links_total != 660:
+        raise ValueError(f"Expected 660 preserved hyperlinks, got {preserved_links_total}")
     if card_count != 78:
         raise ValueError(f"Expected 78 cards, got {card_count}")
     combo_file_count = sum(path.startswith("knowledge/combinations/major-arcana/") for path in outputs)
@@ -1539,12 +1687,17 @@ def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[s
         "combination_files": 22,
         "directional_combination_rows": len(combination_edges),
         "undirected_major_pairs": 231,
-        "foundation_files": 7,
-        "lesson_source_files": 10,
-        "source_material_files": 17,
+        "foundation_files": 8,
+        "lesson_source_files": 16,
+        "source_material_files": 24,
         "advanced_guide_units": 9,
         "advanced_guide_embedded_images": 62,
         "advanced_guide_remote_media_fields": 62,
+        "repeated_messages_guide_units": 7,
+        "repeated_messages_embedded_images": 12,
+        "repeated_messages_image_occurrences": 15,
+        "repeated_messages_remote_media_fields": 15,
+        "repeated_messages_remote_media_unique_urls": 12,
         "source_hyperlinks_detected": source_links_total,
         "hyperlinks_excluded": excluded_hyperlinks,
         "hyperlinks_preserved": preserved_links_total,
@@ -1567,14 +1720,18 @@ def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[s
             "進階解讀原稿中的 62 張內嵌圖片保留於原始 DOCX，未放入文字索引。",
             "進階解讀原稿的一段第三方購物推薦已排除，其中含 1 個超連結。",
             "進階解讀原稿含疑似錯字、重複內容與待考證對應，九個單元均維持 draft。",
+            "重複訊息原稿實際含重複訊息與主客體兩篇文章，已拆成七個本機單元。",
+            "重複訊息原稿的 12 張內嵌牌圖、15 次圖片使用與 15 個遠端圖片欄位未放入文字索引。",
+            "重複訊息原稿尾端的相關閱讀導流已排除，其中含 3 個超連結。",
+            "重複與主客體解讀均維持 draft；不得把重複當作必然證據，也不得以他人牌位代替溝通或查證。",
             "寶劍王牌使用「學習重點」而非日期欄位，因此 timing 保留為 null。",
             "所有匯入內容 review_status 均為 draft，尚待逐張人工校對。",
             "來源權利狀態仍為 unknown，不得推送牌義全文到公開 GitHub。",
         ],
     }
     outputs["qa/import-report.json"] = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
-    if len(outputs) != 118:
-        raise ValueError(f"Expected 118 output files, got {len(outputs)}")
+    if len(outputs) != 125:
+        raise ValueError(f"Expected 125 output files, got {len(outputs)}")
     return outputs, report
 
 
@@ -1616,6 +1773,7 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser.add_argument("--pentacles-01-14", type=Path, required=True)
     parser.add_argument("--supplemental-guides", type=Path, required=True)
     parser.add_argument("--advanced-guides", type=Path, required=True)
+    parser.add_argument("--repeated-messages-guides", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, default=Path.cwd())
     parser.add_argument(
         "--write",
@@ -1641,6 +1799,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "pentacles_01_14": args.pentacles_01_14,
         "supplemental_guides": args.supplemental_guides,
         "advanced_guides": args.advanced_guides,
+        "repeated_messages_guides": args.repeated_messages_guides,
     }
     try:
         documents = [
@@ -1654,6 +1813,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "pentacles_01_14",
                 "supplemental_guides",
                 "advanced_guides",
+                "repeated_messages_guides",
             )
         ]
         outputs, report = build_outputs(documents)

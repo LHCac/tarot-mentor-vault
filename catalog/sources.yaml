@@ -108,3 +108,16 @@ sources:
     rights_status: unknown
     publish: false
     notes: "原稿含大量 JASIYU 文字、62 張內嵌圖片與 62 個遠端圖片欄位；另有一段第三方購物推薦。正文與圖片只留本機，購物推薦已排除文字索引，公開前需確認作者身分、文字與圖片授權。"
+
+  - id: src-repeated-messages
+    title: "重複訊息與主客體解讀本機原稿"
+    local_filename: "如何看懂占卜中的重複訊息.docx"
+    media_type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+    sha256: "e44563bc22a8c800614ec441e3e4febdbc07977b0fc9d53ae1fda80d0c6548ca"
+    coverage:
+      scope: repeated-messages-and-subject-object-guides
+      topics: [repeated-message-recognition, repeated-message-differences, repeated-message-integration, subject-object-environment, subject-object-evidence, subject-object-casework, subject-object-boundaries]
+      expected_unit_count: 7
+    rights_status: unknown
+    publish: false
+    notes: "原稿實際含「重複訊息」與「主客體解讀」兩篇文章，並含 12 張內嵌圖、15 次圖片使用、15 個遠端圖片欄位與 JASIYU 連結。正文、圖片與文件個人中繼資料只留本機，尾端 3 個導流連結已排除文字索引；公開前需確認文字與圖片授權。"
