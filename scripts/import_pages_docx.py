@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Import the nine reviewed Pages-to-DOCX exports into local Markdown.
+"""Import the ten reviewed Pages-to-DOCX exports into local Markdown.
 
 The importer is intentionally strict.  It validates the exact reviewed DOCX
 exports, card boundaries, card order, directional combination tables, and
@@ -316,6 +316,15 @@ INPUT_SPECS = {
         paragraph_count=149,
         nonempty_paragraph_count=127,
         table_count=0,
+        cards=(),
+    ),
+    "spread_guides": InputSpec(
+        key="spread_guides",
+        source_id="src-spread-guides",
+        sha256="de2d8ee95ada329a90b455cae3664d5712b4cb257b358b14665055388c1db762",
+        paragraph_count=552,
+        nonempty_paragraph_count=519,
+        table_count=3,
         cards=(),
     ),
 }
@@ -1430,6 +1439,114 @@ def remove_repeated_messages_navigation(
     return tuple(blocks[:index]) + tuple(blocks[index + 1 :]), excluded_links
 
 
+def split_spread_guides(
+    blocks: Sequence[Block],
+) -> dict[str, tuple[Block, ...]]:
+    """Split the interleaved spread export into five coherent local units.
+
+    The source places a short selector section before each longer article, so
+    the selector is assembled from four non-contiguous ranges plus its FAQ.
+    The source title says five scenarios, but the reviewed export only contains
+    four scenario sections; that mismatch is deliberately preserved as a QA
+    warning instead of inventing a missing fifth spread.
+    """
+
+    anchors = {
+        "selector_intro": "塔羅牌陣（Tarot Spread）是為每張牌設定閱讀位置的方法。",
+        "three_card_integration": "塔羅牌三張解讀法｜5 步整合多張牌、完整案例與練習模板",
+        "choice_scenario": "情境二｜選擇與比較",
+        "choice_article": "二擇一塔羅牌陣適合用在你面前有兩個明確選項",
+        "relationship_scenario": "情境三｜感情與關係",
+        "relationship_article": "戀人金字塔牌陣適合用來整理一段關係目前的互動",
+        "timeline_scenario": "情境四｜進度與時間線",
+        "three_card_library": "三張塔羅牌陣教學：25 個新手也能用的三張牌占卜法",
+        "selector_faq": "選牌陣時，最常遇到的 4 個卡點",
+    }
+    positions: dict[str, int] = {}
+    for key, prefix in anchors.items():
+        matches = [
+            index
+            for index, block in enumerate(blocks)
+            if block.kind == "paragraph"
+            and isinstance(block.value, Paragraph)
+            and block.value.plain.startswith(prefix)
+        ]
+        if len(matches) != 1:
+            raise ValueError(
+                f"Spread guide anchor {key!r} expected once, got {matches}"
+            )
+        positions[key] = matches[0]
+
+    order = [
+        "selector_intro",
+        "three_card_integration",
+        "choice_scenario",
+        "choice_article",
+        "relationship_scenario",
+        "relationship_article",
+        "timeline_scenario",
+        "three_card_library",
+        "selector_faq",
+    ]
+    ordered_positions = [positions[key] for key in order]
+    if ordered_positions != sorted(ordered_positions):
+        raise ValueError("Spread guide anchors are out of order")
+
+    selector = (
+        tuple(blocks[positions["selector_intro"] : positions["three_card_integration"]])
+        + tuple(blocks[positions["choice_scenario"] : positions["choice_article"]])
+        + tuple(blocks[positions["relationship_scenario"] : positions["relationship_article"]])
+        + tuple(blocks[positions["timeline_scenario"] : positions["three_card_library"]])
+        + tuple(blocks[positions["selector_faq"] :])
+    )
+    return {
+        "selector": selector,
+        "three_card_integration": tuple(
+            blocks[positions["three_card_integration"] : positions["choice_scenario"]]
+        ),
+        "two_choice": tuple(
+            blocks[positions["choice_article"] : positions["relationship_scenario"]]
+        ),
+        "relationship": tuple(
+            blocks[positions["relationship_article"] : positions["timeline_scenario"]]
+        ),
+        "three_card_library": tuple(
+            blocks[positions["three_card_library"] : positions["selector_faq"]]
+        ),
+    }
+
+
+def remove_spread_navigation(
+    units: dict[str, tuple[Block, ...]],
+) -> tuple[dict[str, tuple[Block, ...]], int]:
+    """Remove JASIYU cross-navigation while retaining neutral references."""
+
+    cleaned: dict[str, tuple[Block, ...]] = {}
+    excluded_links = 0
+    excluded_paragraphs = 0
+    for key, blocks in units.items():
+        kept: list[Block] = []
+        for block in blocks:
+            if block.kind != "paragraph" or not isinstance(block.value, Paragraph):
+                kept.append(block)
+                continue
+            jasiyu_links = [
+                link for link in block.value.links if "jasiyu.com" in link.url.lower()
+            ]
+            if jasiyu_links:
+                excluded_links += len(jasiyu_links)
+                excluded_paragraphs += 1
+                continue
+            kept.append(block)
+        cleaned[key] = tuple(kept)
+    if excluded_links != 9 or excluded_paragraphs != 4:
+        raise ValueError(
+            "Spread navigation changed; expected 9 links in 4 paragraphs, "
+            f"got {excluded_links} links in {excluded_paragraphs} paragraphs"
+        )
+    return cleaned, excluded_links
+
+
 def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[str, object]]:
     outputs: dict[str, str] = {}
     combination_edges: set[tuple[int, int]] = set()
@@ -1658,14 +1775,65 @@ def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[s
         ),
     )
 
+    spread_units = split_spread_guides(preambles["spread_guides"])
+    spread_units, spread_excluded_links = remove_spread_navigation(spread_units)
+    excluded_hyperlinks += spread_excluded_links
+    outputs["spreads/spread-selection-source.md"] = render_source_guide(
+        title="牌陣選擇與常見問題（牌陣原稿）",
+        source_id="src-spread-guides",
+        blocks=spread_units["selector"],
+        warnings=(
+            "原稿標題宣稱五種情境，但 reviewed DOCX 僅有四個情境段落；不得自行補成第五種。",
+            "原稿的 JASIYU 站內導覽已排除文字索引。",
+        ),
+    )
+    outputs["lessons/three-card-integration-source.md"] = render_source_guide(
+        title="三張牌整合方法與案例（牌陣原稿）",
+        source_id="src-spread-guides",
+        blocks=spread_units["three_card_integration"],
+        warnings=(
+            "三張牌必須在抽牌前固定牌位，並把結論收斂成可驗證的行動方向。",
+            "原始 DOCX 的三張牌案例圖片未放入文字索引。",
+        ),
+    )
+    outputs["spreads/two-choice-five-card-source.md"] = render_source_guide(
+        title="五張二擇一選擇陣（牌陣原稿）",
+        source_id="src-spread-guides",
+        blocks=spread_units["two_choice"],
+        warnings=(
+            "原稿摘要與完整教學的第 2 至 5 牌位定義互相衝突；導師版採用附圖與完整教學中的發展／提醒結構。",
+            "牌陣只比較路徑、條件與代價，不替使用者作決定或保證結果。",
+            "原始 DOCX 的排牌圖未放入文字索引。",
+        ),
+    )
+    outputs["spreads/relationship-seven-card-source.md"] = render_source_guide(
+        title="七張關係牌陣（牌陣原稿）",
+        source_id="src-spread-guides",
+        blocks=spread_units["relationship"],
+        warnings=(
+            "原稿摘要與完整教學的七個牌位定義互相衝突；導師版採用附圖與完整教學中的現況／雙方／內外影響／建議／潛力結構。",
+            "對方牌位只描述可觀察的互動態度，不視為讀心或事實證明。",
+            "原始 DOCX 的排牌圖未放入文字索引。",
+        ),
+    )
+    outputs["spreads/three-card-library-source.md"] = render_source_guide(
+        title="二十五種三張牌牌陣（牌陣原稿）",
+        source_id="src-spread-guides",
+        blocks=spread_units["three_card_library"],
+        warnings=(
+            "三張牌模板先依問題選定一組，抽牌後不得因喜好結果而更換牌位。",
+            "涉及他人的模板仍要遵守主客體界線，第三人內心與未來結果均標示為待確認。",
+        ),
+    )
+
     source_links_total = sum(document.link_count for document in documents)
-    if source_links_total != 667:
-        raise ValueError(f"Expected 667 source hyperlinks, got {source_links_total}")
-    if excluded_hyperlinks != 7:
-        raise ValueError(f"Expected 7 excluded hyperlinks, got {excluded_hyperlinks}")
+    if source_links_total != 679:
+        raise ValueError(f"Expected 679 source hyperlinks, got {source_links_total}")
+    if excluded_hyperlinks != 16:
+        raise ValueError(f"Expected 16 excluded hyperlinks, got {excluded_hyperlinks}")
     preserved_links_total = source_links_total - excluded_hyperlinks
-    if preserved_links_total != 660:
-        raise ValueError(f"Expected 660 preserved hyperlinks, got {preserved_links_total}")
+    if preserved_links_total != 663:
+        raise ValueError(f"Expected 663 preserved hyperlinks, got {preserved_links_total}")
     if card_count != 78:
         raise ValueError(f"Expected 78 cards, got {card_count}")
     combo_file_count = sum(path.startswith("knowledge/combinations/major-arcana/") for path in outputs)
@@ -1688,8 +1856,9 @@ def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[s
         "directional_combination_rows": len(combination_edges),
         "undirected_major_pairs": 231,
         "foundation_files": 8,
-        "lesson_source_files": 16,
-        "source_material_files": 24,
+        "lesson_source_files": 17,
+        "spread_source_files": 4,
+        "source_material_files": 29,
         "advanced_guide_units": 9,
         "advanced_guide_embedded_images": 62,
         "advanced_guide_remote_media_fields": 62,
@@ -1698,6 +1867,11 @@ def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[s
         "repeated_messages_image_occurrences": 15,
         "repeated_messages_remote_media_fields": 15,
         "repeated_messages_remote_media_unique_urls": 12,
+        "spread_guide_units": 5,
+        "spread_guide_embedded_images": 5,
+        "spread_guide_image_occurrences": 5,
+        "spread_guide_remote_media_fields": 5,
+        "spread_guide_remote_media_unique_urls": 5,
         "source_hyperlinks_detected": source_links_total,
         "hyperlinks_excluded": excluded_hyperlinks,
         "hyperlinks_preserved": preserved_links_total,
@@ -1724,14 +1898,17 @@ def build_outputs(documents: Sequence[Document]) -> tuple[dict[str, str], dict[s
             "重複訊息原稿的 12 張內嵌牌圖、15 次圖片使用與 15 個遠端圖片欄位未放入文字索引。",
             "重複訊息原稿尾端的相關閱讀導流已排除，其中含 3 個超連結。",
             "重複與主客體解讀均維持 draft；不得把重複當作必然證據，也不得以他人牌位代替溝通或查證。",
+            "牌陣原稿已拆成選擇指南、三張牌整合、五張二擇一、七張關係牌陣與二十五種三張牌模板五個單元。",
+            "牌陣原稿的 5 張內嵌圖片與 5 個遠端圖片欄位未放入文字索引；9 個 JASIYU 站內導覽連結已排除。",
+            "牌陣原稿宣稱五種情境但實際只有四個情境段落；二擇一與七張關係牌陣的摘要／完整教學牌位亦有衝突，導師版採完整教學與附圖。",
             "寶劍王牌使用「學習重點」而非日期欄位，因此 timing 保留為 null。",
             "所有匯入內容 review_status 均為 draft，尚待逐張人工校對。",
             "來源權利狀態仍為 unknown，不得推送牌義全文到公開 GitHub。",
         ],
     }
     outputs["qa/import-report.json"] = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
-    if len(outputs) != 125:
-        raise ValueError(f"Expected 125 output files, got {len(outputs)}")
+    if len(outputs) != 130:
+        raise ValueError(f"Expected 130 output files, got {len(outputs)}")
     return outputs, report
 
 
@@ -1774,6 +1951,7 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser.add_argument("--supplemental-guides", type=Path, required=True)
     parser.add_argument("--advanced-guides", type=Path, required=True)
     parser.add_argument("--repeated-messages-guides", type=Path, required=True)
+    parser.add_argument("--spread-guides", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, default=Path.cwd())
     parser.add_argument(
         "--write",
@@ -1800,6 +1978,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "supplemental_guides": args.supplemental_guides,
         "advanced_guides": args.advanced_guides,
         "repeated_messages_guides": args.repeated_messages_guides,
+        "spread_guides": args.spread_guides,
     }
     try:
         documents = [
@@ -1814,6 +1993,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "supplemental_guides",
                 "advanced_guides",
                 "repeated_messages_guides",
+                "spread_guides",
             )
         ]
         outputs, report = build_outputs(documents)

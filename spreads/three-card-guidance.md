@@ -3,7 +3,7 @@ schema_version: 1
 id: "spread-three-card-guidance"
 name_zh: "現況・阻力・方向"
 card_count: 3
-position_ids: [situation, tension, direction]
+position_ids: ["situation", "tension", "direction"]
 review_status: "draft"
 last_reviewed: null
 ---

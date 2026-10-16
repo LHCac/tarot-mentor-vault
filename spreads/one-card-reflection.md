@@ -3,7 +3,7 @@ schema_version: 1
 id: "spread-one-card-reflection"
 name_zh: "單牌聚焦"
 card_count: 1
-position_ids: [focus]
+position_ids: ["focus"]
 review_status: "draft"
 last_reviewed: null
 ---

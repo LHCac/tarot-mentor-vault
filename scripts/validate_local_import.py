@@ -59,21 +59,32 @@ FOUNDATION_FRONTMATTER_KEYS = {
     "review_status",
     "last_reviewed",
 }
+SPREAD_FRONTMATTER_KEYS = {
+    "schema_version",
+    "id",
+    "name_zh",
+    "card_count",
+    "position_ids",
+    "review_status",
+    "last_reviewed",
+}
 CORRESPONDENCE_KEYS = {"element", "planet", "zodiac", "timing"}
 IMPORTED_FOUNDATION_FILES = 8
-IMPORTED_LESSON_SOURCE_FILES = 16
-IMPORTED_SOURCE_MATERIAL_FILES = 24
+IMPORTED_LESSON_SOURCE_FILES = 17
+IMPORTED_SPREAD_SOURCE_FILES = 4
+IMPORTED_SOURCE_MATERIAL_FILES = 29
 IMPORTED_CARD_EXTERNAL_LINKS = 115
 IMPORTED_COMBINATION_EXTERNAL_LINKS = 462
-IMPORTED_EXTERNAL_LINKS_TOTAL = 660
-SOURCE_HYPERLINKS_DETECTED = 667
-EXCLUDED_SOURCE_HYPERLINKS = 7
+IMPORTED_EXTERNAL_LINKS_TOTAL = 663
+SOURCE_HYPERLINKS_DETECTED = 679
+EXCLUDED_SOURCE_HYPERLINKS = 16
 CURATED_CARD_EXTERNAL_LINKS = 112
 CURATED_CARD_EXTERNAL_LINK_DELTA = -3
 CURATED_FOUNDATION_REFERENCE_FILES = 1
 CURATED_FOUNDATION_FILES_TOTAL = 9
 CURATED_LESSON_REFERENCE_FILES = 1
-CURATED_LESSON_FILES_TOTAL = 17
+CURATED_LESSON_FILES_TOTAL = 18
+CURATED_SPREAD_FILES = 10
 SEMANTIC_HEADINGS = {
     "upright": re.compile(r"^#{2,6}\s+.*正位", re.MULTILINE),
     "reversed": re.compile(r"^#{2,6}\s+.*逆位", re.MULTILINE),
@@ -126,6 +137,8 @@ class Validation:
             "combination_external_links": 0,
             "foundation_files": 0,
             "lesson_source_files": 0,
+            "spread_source_files": 0,
+            "authored_spread_files": 0,
         }
 
     def error(self, location: str | Path, message: str) -> None:
@@ -574,6 +587,7 @@ def validate_lessons(validation: Validation) -> None:
         directory / "subject-object-evidence-source.md": "src-repeated-messages",
         directory / "subject-object-casework-source.md": "src-repeated-messages",
         directory / "subject-object-boundaries-faq-source.md": "src-repeated-messages",
+        directory / "three-card-integration-source.md": "src-spread-guides",
     }
     expected_references = {directory / "learning-path.md"}
     actual = {Path(path) for path in actual_content_paths(directory)}
@@ -630,6 +644,157 @@ def validate_lessons(validation: Validation) -> None:
         check_single_h1(validation, path, body)
 
 
+def validate_spreads(validation: Validation) -> None:
+    directory = validation.root / "spreads"
+    expected_sources = {
+        directory / "spread-selection-source.md": "src-spread-guides",
+        directory / "two-choice-five-card-source.md": "src-spread-guides",
+        directory / "relationship-seven-card-source.md": "src-spread-guides",
+        directory / "three-card-library-source.md": "src-spread-guides",
+    }
+    expected_authored = {
+        directory / "one-card-reflection.md": (
+            "spread-one-card-reflection",
+            "單牌聚焦",
+            1,
+            ["focus"],
+        ),
+        directory / "three-card-guidance.md": (
+            "spread-three-card-guidance",
+            "現況・阻力・方向",
+            3,
+            ["situation", "tension", "direction"],
+        ),
+        directory / "three-card-timeline.md": (
+            "spread-three-card-timeline",
+            "過去・現在・未來趨勢",
+            3,
+            ["past", "present", "future_tendency"],
+        ),
+        directory / "three-card-problem-solving.md": (
+            "spread-three-card-problem-solving",
+            "問題本質・原因・解方",
+            3,
+            ["core_problem", "cause", "solution"],
+        ),
+        directory / "three-card-self-alignment.md": (
+            "spread-three-card-self-alignment",
+            "想法・感受・行動",
+            3,
+            ["thoughts", "feelings", "actions"],
+        ),
+        directory / "three-card-relationship-snapshot.md": (
+            "spread-three-card-relationship-snapshot",
+            "你・對方・關係互動",
+            3,
+            ["self", "other_observed", "relationship"],
+        ),
+        directory / "three-card-stop-start-continue.md": (
+            "spread-three-card-stop-start-continue",
+            "停止・開始・繼續",
+            3,
+            ["stop", "start", "continue"],
+        ),
+        directory / "five-card-two-choice.md": (
+            "spread-five-card-two-choice",
+            "五張二擇一",
+            5,
+            [
+                "decision_core",
+                "option_a_path",
+                "option_b_path",
+                "option_a_guidance",
+                "option_b_guidance",
+            ],
+        ),
+        directory / "seven-card-relationship.md": (
+            "spread-seven-card-relationship",
+            "七張關係全貌",
+            7,
+            [
+                "relationship_now",
+                "self_needs",
+                "other_observed",
+                "inner_pattern",
+                "outer_conditions",
+                "guidance",
+                "potential",
+            ],
+        ),
+        directory / "three-card-library.md": (
+            "spread-three-card-library",
+            "三張牌快速選擇庫",
+            3,
+            [],
+        ),
+    }
+    actual = {Path(path) for path in actual_content_paths(directory)}
+    actual_sources = {path for path in actual if path.name.endswith("-source.md")}
+    actual_authored = actual - actual_sources
+    validation.counts["spread_source_files"] = len(actual_sources)
+    validation.counts["authored_spread_files"] = len(actual_authored)
+    validation.counts["spread_files_total"] = len(actual)
+    compare_path_sets(
+        validation,
+        "spreads imported sources",
+        (str(path) for path in actual_sources),
+        (str(path) for path in expected_sources),
+    )
+    compare_path_sets(
+        validation,
+        "spreads authored definitions",
+        (str(path) for path in actual_authored),
+        (str(path) for path in expected_authored),
+    )
+    validation.expect(
+        len(actual_sources) == IMPORTED_SPREAD_SOURCE_FILES,
+        "spreads",
+        f"expected {IMPORTED_SPREAD_SOURCE_FILES} imported spread files, found {len(actual_sources)}",
+    )
+    validation.expect(
+        len(actual_authored) == CURATED_SPREAD_FILES,
+        "spreads",
+        f"expected {CURATED_SPREAD_FILES} authored spread files, found {len(actual_authored)}",
+    )
+
+    for path, source_id in expected_sources.items():
+        if not path.is_file():
+            continue
+        parsed = read_markdown(validation, path)
+        if parsed is None:
+            continue
+        metadata, body = parsed
+        check_key_set(validation, path, metadata, FOUNDATION_FRONTMATTER_KEYS)
+        validation.expect(metadata.get("schema_version") == 1, path, "schema_version must equal 1")
+        validation.expect(metadata.get("source_ids") == [source_id], path, f"source_ids must equal {[source_id]!r}")
+        check_review_fields(validation, path, metadata)
+        check_single_h1(validation, path, body)
+
+    for path, (spread_id, name_zh, card_count, position_ids) in expected_authored.items():
+        if not path.is_file():
+            continue
+        parsed = read_markdown(validation, path)
+        if parsed is None:
+            continue
+        metadata, body = parsed
+        check_key_set(validation, path, metadata, SPREAD_FRONTMATTER_KEYS)
+        expected_fields = {
+            "schema_version": 1,
+            "id": spread_id,
+            "name_zh": name_zh,
+            "card_count": card_count,
+            "position_ids": position_ids,
+        }
+        for field, expected in expected_fields.items():
+            validation.expect(
+                values_match(metadata.get(field), expected),
+                path,
+                f"{field} must equal {expected!r}",
+            )
+        check_review_fields(validation, path, metadata)
+        check_single_h1(validation, path, body, name_zh)
+
+
 def expect_report_value(
     validation: Validation,
     report: dict[str, Any],
@@ -673,6 +838,7 @@ def validate_import_report(validation: Validation) -> None:
         # foundation without rewriting that provenance report.
         ("foundation_files",): IMPORTED_FOUNDATION_FILES,
         ("lesson_source_files",): IMPORTED_LESSON_SOURCE_FILES,
+        ("spread_source_files",): IMPORTED_SPREAD_SOURCE_FILES,
         ("source_material_files",): IMPORTED_SOURCE_MATERIAL_FILES,
         ("advanced_guide_units",): 9,
         ("advanced_guide_embedded_images",): 62,
@@ -682,6 +848,11 @@ def validate_import_report(validation: Validation) -> None:
         ("repeated_messages_image_occurrences",): 15,
         ("repeated_messages_remote_media_fields",): 15,
         ("repeated_messages_remote_media_unique_urls",): 12,
+        ("spread_guide_units",): 5,
+        ("spread_guide_embedded_images",): 5,
+        ("spread_guide_image_occurrences",): 5,
+        ("spread_guide_remote_media_fields",): 5,
+        ("spread_guide_remote_media_unique_urls",): 5,
         ("source_hyperlinks_detected",): SOURCE_HYPERLINKS_DETECTED,
         ("hyperlinks_excluded",): EXCLUDED_SOURCE_HYPERLINKS,
         ("hyperlinks_preserved",): IMPORTED_EXTERNAL_LINKS_TOTAL,
@@ -807,6 +978,7 @@ def validate_repository(root: Path) -> Validation:
 
     validate_foundations(validation)
     validate_lessons(validation)
+    validate_spreads(validation)
     validate_import_report(validation)
     return validation
 

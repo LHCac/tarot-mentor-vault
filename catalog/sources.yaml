@@ -121,3 +121,17 @@ sources:
     rights_status: unknown
     publish: false
     notes: "原稿實際含「重複訊息」與「主客體解讀」兩篇文章，並含 12 張內嵌圖、15 次圖片使用、15 個遠端圖片欄位與 JASIYU 連結。正文、圖片與文件個人中繼資料只留本機，尾端 3 個導流連結已排除文字索引；公開前需確認文字與圖片授權。"
+
+  - id: src-spread-guides
+    title: "塔羅牌牌陣教學本機原稿"
+    local_filename: "塔羅牌牌陣教學.docx"
+    media_type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+    sha256: "de2d8ee95ada329a90b455cae3664d5712b4cb257b358b14665055388c1db762"
+    coverage:
+      scope: spread-guides
+      topics: [spread-selection, three-card-integration, two-choice, relationship-spread, three-card-library]
+      expected_unit_count: 5
+      three_card_variants: 25
+    rights_status: unknown
+    publish: false
+    notes: "原稿含 5 張內嵌圖、5 個遠端圖片欄位、12 個外部連結與個人中繼資料。正文與圖片只留本機；9 個 JASIYU 站內導覽連結已排除。原稿聲稱五種情境但實際只有四段，且二擇一與七張關係牌陣的摘要／完整教學牌位衝突；人工整理版採完整教學與附圖結構。"
